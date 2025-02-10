@@ -1,0 +1,66 @@
+// File:		main.go
+// Created by:	Hoven
+// Created on:	2025-02-09
+//
+// This file is part of the Example Project.
+//
+// (c) 2024 Example Corp. All rights reserved.
+
+package main
+
+import (
+	"github.com/go-puzzles/puzzles/cores"
+	"github.com/go-puzzles/puzzles/dialer/grpc"
+	"github.com/go-puzzles/puzzles/goredis"
+	"github.com/go-puzzles/puzzles/pflags"
+	"github.com/go-puzzles/puzzles/pgorm"
+	"github.com/go-puzzles/puzzles/plog"
+	"github.com/yazl-tech/beauty-rating-server/api"
+	"github.com/yazl-tech/beauty-rating-server/pkg/dal/model"
+	"github.com/yazl-tech/beauty-rating-server/pkg/oss/minio"
+	"github.com/yazl-tech/beauty-rating-server/service"
+
+	consulpuzzle "github.com/go-puzzles/puzzles/cores/puzzles/consul-puzzle"
+	httppuzzle "github.com/go-puzzles/puzzles/cores/puzzles/http-puzzle"
+)
+
+var (
+	port          = pflags.Int("port", 28084, "Port to listen on")
+	authCoreSrv   = pflags.String("authCoreSrv", "auth-core", "auth-core server name")
+	redisConfFlag = pflags.Struct("redisAuth", (*goredis.RedisConf)(nil), "redis auth config")
+	mysqlConfFlag = pflags.Struct("mysqlAuth", (*pgorm.MysqlConfig)(nil), "mysql auth config")
+	minioConfFlag = pflags.Struct("minioAuth", (*minio.MinioConfig)(nil), "minio auth config")
+)
+
+func main() {
+	pflags.Parse()
+
+	authCoreConn, err := grpc.DialGrpc(authCoreSrv())
+	plog.PanicError(err)
+
+	minioConf := new(minio.MinioConfig)
+	plog.PanicError(minioConfFlag(minioConf))
+	mysqlConf := new(pgorm.MysqlConfig)
+	plog.PanicError(mysqlConfFlag(mysqlConf))
+	redisConf := new(goredis.RedisConf)
+	plog.PanicError(redisConfFlag(redisConf))
+
+	minioClient := minio.NewMinioOss(minioConf)
+
+	plog.PanicError(pgorm.RegisterSqlModelWithConf(mysqlConf, model.AllTables()...))
+	plog.PanicError(pgorm.AutoMigrate(mysqlConf))
+	db := pgorm.GetDbByConf(mysqlConf)
+
+	redisClient := redisConf.DialRedisClient()
+
+	beautyService := service.NewBeautyRatingService(db, minioClient, authCoreConn)
+	router := api.SetupRouter(beautyService, redisClient)
+
+	coreSrv := cores.NewPuzzleCore(
+		cores.WithService(pflags.GetServiceName()),
+		consulpuzzle.WithConsulRegister(),
+		httppuzzle.WithCoreHttpCORS(),
+		httppuzzle.WithCoreHttpPuzzle("/api", router),
+	)
+	plog.PanicError(cores.Start(coreSrv, port()))
+}
