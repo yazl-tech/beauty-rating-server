@@ -21,6 +21,7 @@ import (
 )
 
 type UserHandlerApp interface {
+	WechatLogin(ctx context.Context, code, deviceId string) (*dto.WechatLoginResponse, error)
 	GetUserProfile(ctx context.Context) (*user.User, error)
 	UpdateUserName(ctx context.Context, username string) error
 	UpdateUserGender(ctx context.Context, gender int) error
@@ -41,7 +42,11 @@ func NewUserHandler(userApp UserHandlerApp, middleware UserMiddleware) *UserHand
 }
 
 func (u *UserHandler) Init(router gin.IRouter) {
-	userNeedLogin := router.Group("user", u.middleware.UserLoginRequired())
+	userGroup := router.Group("user")
+	userGroup.POST("login/wx", pgin.RequestResponseHandler(u.wechatLoginHandler))
+
+	userNeedLogin := router.Group("user")
+	userNeedLogin.Use(u.middleware.UserLoginRequired(), u.middleware.GrpcTokenRequired())
 	userNeedLogin.GET("info", pgin.ResponseHandler(u.getUserInfoHandler))
 	userNeedLogin.PUT("nickname/update", pgin.RequestWithErrorHandler(u.updateUserNameHandler))
 	userNeedLogin.PUT("gender/update", pgin.RequestWithErrorHandler(u.updateUserGenderHander))
@@ -49,8 +54,12 @@ func (u *UserHandler) Init(router gin.IRouter) {
 	userNeedLogin.GET("avatar/:avatar_id", pgin.RequestWithErrorHandler(u.getAvatarHandler))
 }
 
+func (u *UserHandler) wechatLoginHandler(ctx *gin.Context, req *dto.WechatLoginRequest) (*dto.WechatLoginResponse, error) {
+	return u.userApp.WechatLogin(ctx.Request.Context(), req.Code, req.DeviceId)
+}
+
 func (u *UserHandler) getUserInfoHandler(ctx *gin.Context) (*dto.User, error) {
-	user, err := u.userApp.GetUserProfile(ctx)
+	user, err := u.userApp.GetUserProfile(ctx.Request.Context())
 	if err != nil {
 		return nil, err
 	}

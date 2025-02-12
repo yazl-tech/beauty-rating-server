@@ -10,12 +10,8 @@ package dto
 
 import "github.com/yazl-tech/beauty-rating-server/domain/analysis"
 
-type UploadImageResponse struct {
-	ImageId string `json:"image_id"`
-}
-
 type GetImageRequest struct {
-	ImageId string `uri:"image_id"`
+	ImageId string `form:"image_id"`
 }
 
 type DoAnalysisRequest struct {
@@ -23,7 +19,8 @@ type DoAnalysisRequest struct {
 }
 
 type DoAnalysisResponse struct {
-	Detail *analysis.AnalysisDetail
+	ImageId string                   `json:"image_id"`
+	Detail  *analysis.AnalysisDetail `json:"detail"`
 }
 
 type DoFavoriteRequest struct {

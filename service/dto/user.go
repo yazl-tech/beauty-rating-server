@@ -40,6 +40,17 @@ func UserEntityToDto(u *user.User) *User {
 	return dtoUser
 }
 
+type WechatLoginRequest struct {
+	Code     string `json:"code"`
+	DeviceId string `header:"X-Device-Id"`
+}
+
+type WechatLoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	User         *User  `json:"user"`
+}
+
 type UpdateUserNameRequest struct {
 	UserName string `json:"username"`
 }

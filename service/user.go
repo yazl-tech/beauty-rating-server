@@ -16,7 +16,24 @@ import (
 	"github.com/go-puzzles/puzzles/plog"
 	"github.com/yazl-tech/beauty-rating-server/domain/user"
 	"github.com/yazl-tech/beauty-rating-server/pkg/exception"
+	"github.com/yazl-tech/beauty-rating-server/service/dto"
 )
+
+func (bs *BeautyRatingService) WechatLogin(ctx context.Context, code, deviceId string) (*dto.WechatLoginResponse, error) {
+	token, err := bs.userSrv.WxLogin(ctx, deviceId, code)
+	if err != nil {
+		plog.Errorc(ctx, "wechat login failed: %v", err)
+		return nil, exception.ErrWechatLogin
+	}
+
+	return &dto.WechatLoginResponse{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		User: &dto.User{
+			UserId: token.UserID,
+		},
+	}, nil
+}
 
 func (bs *BeautyRatingService) GetUserProfile(ctx context.Context) (*user.User, error) {
 	u, err := bs.userSrv.GetUserInfo(ctx)

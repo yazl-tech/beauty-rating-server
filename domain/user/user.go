@@ -8,6 +8,11 @@
 
 package user
 
+type WechatConfig struct {
+	AppId    string
+	SecretId string
+}
+
 type BaseInfo struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`

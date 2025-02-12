@@ -37,15 +37,17 @@ type Service interface {
 var _ Service = (*DefaultUserService)(nil)
 
 type DefaultUserService struct {
+	wxConfig   *WechatConfig
 	authClient authenticationpb.AuthCoreAuthenticationHandlerClient
 	userClient userpb.AuthCoreUserHandlerClient
 }
 
-func NewUserService(authCoreConn grpc.ClientConnInterface) *DefaultUserService {
+func NewUserService(wxConf *WechatConfig, authCoreConn grpc.ClientConnInterface) *DefaultUserService {
 	userClient := userpb.NewAuthCoreUserHandlerClient(authCoreConn)
 	authClient := authenticationpb.NewAuthCoreAuthenticationHandlerClient(authCoreConn)
 
 	return &DefaultUserService{
+		wxConfig:   wxConf,
 		authClient: authClient,
 		userClient: userClient,
 	}
@@ -53,6 +55,8 @@ func NewUserService(authCoreConn grpc.ClientConnInterface) *DefaultUserService {
 
 func (us *DefaultUserService) WxLogin(ctx context.Context, deviceId, code string) (*Token, error) {
 	resp, err := us.authClient.WechatLogin(ctx, &dto.WechatLoginRequest{
+		AppId:    us.wxConfig.AppId,
+		SecretId: us.wxConfig.SecretId,
 		DeviceId: deviceId,
 		Code:     code,
 	})

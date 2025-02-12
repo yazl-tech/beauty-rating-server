@@ -10,9 +10,14 @@ package analysisRepo
 
 import (
 	"context"
+	"errors"
 
+	"github.com/go-puzzles/puzzles/plog"
+	"github.com/go-puzzles/puzzles/putils"
 	"github.com/yazl-tech/beauty-rating-server/domain/analysis"
 	"github.com/yazl-tech/beauty-rating-server/pkg/dal/base"
+	"github.com/yazl-tech/beauty-rating-server/pkg/dal/model"
+	"github.com/yazl-tech/beauty-rating-server/pkg/exception"
 	"gorm.io/gorm"
 )
 
@@ -27,21 +32,85 @@ func NewAnalysisRepo(db *gorm.DB) *AnalysisRepo {
 }
 
 func (ar *AnalysisRepo) CreateAnalysisDetail(ctx context.Context, detail *analysis.AnalysisDetail) error {
-	panic("not implemented") // TODO: Implement
+	detailDal := new(model.Analysis)
+	err := detailDal.FromEntity(detail)
+	if err != nil {
+		return err
+	}
+
+	err = ar.db.Analysis.WithContext(ctx).Create(detailDal)
+	if err != nil {
+		return err
+	}
+
+	detail.ID = detailDal.ID
+	return nil
 }
 
 func (ar *AnalysisRepo) GetUserDetails(ctx context.Context, userId int) ([]*analysis.AnalysisDetail, error) {
-	panic("not implemented") // TODO: Implement
+	db := ar.db.Analysis
+
+	details, err := db.WithContext(ctx).Where(db.UserId.Eq(userId)).Find()
+	if err != nil {
+		return nil, err
+	}
+
+	detailEntyties := putils.Convert(details, func(detail *model.Analysis) *analysis.AnalysisDetail {
+		de, err := detail.ToEntity()
+		if err != nil {
+			plog.Errorc(ctx, "convert detail: %v to entity error: %v", detail.ID, err)
+			return nil
+		}
+
+		return de
+	})
+
+	return detailEntyties, nil
 }
 
 func (ar *AnalysisRepo) GetUserDetail(ctx context.Context, userId int, detailId int) (*analysis.AnalysisDetail, error) {
-	panic("not implemented") // TODO: Implement
+	db := ar.db.Analysis
+
+	detail, err := db.WithContext(ctx).Where(db.ID.Eq(detailId), db.UserId.Eq(userId)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, exception.ErrDetailNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	return detail.ToEntity()
 }
 
 func (ar *AnalysisRepo) UpdateAnalysisDetail(ctx context.Context, detail *analysis.AnalysisDetail) error {
-	panic("not implemented") // TODO: Implement
+	if detail.ID == 0 {
+		return exception.ErrNotSpecifyDetail
+	}
+
+	detailDal := new(model.Analysis)
+	err := detailDal.FromEntity(detail)
+	if err != nil {
+		return err
+	}
+
+	err = ar.db.Analysis.WithContext(ctx).Save(detailDal)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return exception.ErrDetailNotFound
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ar *AnalysisRepo) DeleteAnalysisDetail(ctx context.Context, userId int, detailId int) error {
-	panic("not implemented") // TODO: Implement
+	db := ar.db.Analysis
+
+	_, err := db.WithContext(ctx).Where(db.ID.Eq(detailId), db.UserId.Eq(userId)).Delete()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return exception.ErrDetailNotFound
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }

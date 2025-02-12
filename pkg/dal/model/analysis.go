@@ -9,8 +9,10 @@
 package model
 
 import (
+	"encoding/json"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/yazl-tech/beauty-rating-server/domain/analysis"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -35,14 +37,62 @@ func (a *Analysis) TableName() string {
 	return "analysises"
 }
 
-func (a *Analysis) FromEntity(entity *analysis.AnalysisDetail) *Analysis {
+func (a *Analysis) FromEntity(entity *analysis.AnalysisDetail) (err error) {
 	if entity == nil {
-		return a
+		return nil
 	}
 
-	return a
+	a.UserId = entity.UserID
+	a.ImageUrl = entity.ImageUrl
+	a.Score = entity.Score
+	a.Description = entity.Description
+	a.Tags, err = a.convertDBJson(entity.Tags)
+	a.ScoreDetails, err = a.convertDBJson(entity.ScoreDetails)
+	a.IsFavorite = entity.IsFavorite
+	a.CreatedAt = entity.Date
+
+	return nil
 }
 
-func (a *Analysis) ToEntity() *analysis.AnalysisDetail {
-	return &analysis.AnalysisDetail{}
+func (a *Analysis) convertDBJson(v any) (datatypes.JSON, error) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal")
+	}
+
+	return datatypes.JSON(b), nil
+}
+
+func (a *Analysis) ToEntity() (ad *analysis.AnalysisDetail, err error) {
+	if a == nil {
+		return nil, nil
+	}
+
+	ad = &analysis.AnalysisDetail{
+		ID:           a.ID,
+		UserID:       a.UserId,
+		ImageUrl:     a.ImageUrl,
+		Score:        a.Score,
+		Description:  a.Description,
+		IsFavorite:   a.IsFavorite,
+		Date:         a.CreatedAt,
+		Tags:         make([]string, 0),
+		ScoreDetails: make([]analysis.ScoreDetail, 0),
+	}
+
+	err = a.parseDBJson(a.Tags, &ad.Tags)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.parseDBJson(a.ScoreDetails, &ad.ScoreDetails)
+	if err != nil {
+		return nil, err
+	}
+
+	return ad, nil
+}
+
+func (a *Analysis) parseDBJson(j datatypes.JSON, v any) error {
+	return json.Unmarshal(j, v)
 }

@@ -9,9 +9,12 @@
 package analysis
 
 import (
+	"bytes"
 	"context"
 	"io"
+	"math/rand"
 	"mime/multipart"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
@@ -21,9 +24,9 @@ import (
 )
 
 type Service interface {
-	UploadAnalysisImage(ctx context.Context, avatarFile *multipart.FileHeader) (string, error)
+	UploadAnalysisImage(ctx context.Context, avatarFile *multipart.FileHeader) (string, []byte, error)
 	GetAnalysisImage(ctx context.Context, imagePath string, writer io.Writer) error
-	DoAnalysis(ctx context.Context, userId int, imageUrl string) (*AnalysisDetail, error)
+	DoAnalysis(ctx context.Context, userId int, imageId string, b []byte) (*AnalysisDetail, error)
 	Favorite(ctx context.Context, userId int, detailId int) error
 	UnFavorite(ctx context.Context, userId int, detailId int) error
 	DeleteAnalysis(ctx context.Context, userId int, detailId int) error
@@ -43,37 +46,42 @@ func NewAnalysisService(
 	return &DefaultAnalysisService{analyst: analyst, repo: repo, oss: oss}
 }
 
-func (as *DefaultAnalysisService) UploadAnalysisImage(ctx context.Context, file *multipart.FileHeader) (string, error) {
+func (as *DefaultAnalysisService) UploadAnalysisImage(ctx context.Context, file *multipart.FileHeader) (string, []byte, error) {
 	src, err := file.Open()
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	defer src.Close()
 
-	imageUrl, err := as.oss.UploadFile(ctx, file.Size, "analysisImages", file.Filename, src)
+	var fileBytes bytes.Buffer
+	teeReader := io.TeeReader(src, &fileBytes)
+
+	imageUrl, err := as.oss.UploadFile(ctx, file.Size, "analysis", file.Filename, teeReader)
 	if err != nil {
-		return "", errors.Wrap(err, "uploadAnalysisImage")
+		return "", nil, errors.Wrap(err, "uploadAnalysisImage")
 	}
 
-	return imageUrl, nil
+	return imageUrl, fileBytes.Bytes(), nil
 }
 
 func (as *DefaultAnalysisService) GetAnalysisImage(ctx context.Context, imagePath string, writer io.Writer) error {
 	return as.oss.GetFile(ctx, imagePath, writer)
 }
 
-func (as *DefaultAnalysisService) DoAnalysis(ctx context.Context, userId int, imageUrl string) (*AnalysisDetail, error) {
-	d, err := as.analyst.DoAnalysis(ctx, []byte{})
+func (as *DefaultAnalysisService) DoAnalysis(ctx context.Context, userId int, imageId string, b []byte) (*AnalysisDetail, error) {
+	d, err := as.analyst.DoAnalysis(ctx, b)
 	if err != nil {
 		return nil, err
 	}
 
 	detail := &AnalysisDetail{
 		UserID:       userId,
-		ImageUrl:     imageUrl,
+		ImageUrl:     imageId,
 		Score:        d.Score,
+		Percentile:   rand.Intn(20) + 80,
 		Description:  d.Description,
 		Tags:         d.Tags,
+		Date:         time.Now(),
 		ScoreDetails: parseAnalystDetails(d.Details),
 	}
 

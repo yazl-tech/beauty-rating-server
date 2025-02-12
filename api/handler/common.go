@@ -12,5 +12,6 @@ import "github.com/gin-gonic/gin"
 
 type UserMiddleware interface {
 	UserLoginRequired() gin.HandlerFunc
+	GrpcTokenRequired() gin.HandlerFunc
 	GetCurrentUserId(c *gin.Context) (int, error)
 }

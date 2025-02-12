@@ -18,16 +18,6 @@ import (
 	"github.com/yazl-tech/beauty-rating-server/service/dto"
 )
 
-func (bs *BeautyRatingService) UploadImage(ctx context.Context, userId int, fh *multipart.FileHeader) (string, error) {
-	imageId, err := bs.analysisSrv.UploadAnalysisImage(ctx, fh)
-	if err != nil {
-		plog.Errorc(ctx, "upload analysis image failed: %v", err)
-		return "", exception.ErrUploadImage
-	}
-
-	return imageId, nil
-}
-
 func (bs *BeautyRatingService) GetImage(ctx context.Context, imageId string, writer io.Writer) error {
 	err := bs.analysisSrv.GetAnalysisImage(ctx, imageId, writer)
 	if err != nil {
@@ -38,8 +28,14 @@ func (bs *BeautyRatingService) GetImage(ctx context.Context, imageId string, wri
 	return nil
 }
 
-func (bs *BeautyRatingService) DoAnalysis(ctx context.Context, userId int, imageId string) (*dto.DoAnalysisResponse, error) {
-	result, err := bs.analysisSrv.DoAnalysis(ctx, userId, imageId)
+func (bs *BeautyRatingService) DoAnalysis(ctx context.Context, userId int, fh *multipart.FileHeader) (*dto.DoAnalysisResponse, error) {
+	imageId, b, err := bs.analysisSrv.UploadAnalysisImage(ctx, fh)
+	if err != nil {
+		plog.Errorc(ctx, "upload analysis image failed: %v", err)
+		return nil, exception.ErrUploadImage
+	}
+
+	result, err := bs.analysisSrv.DoAnalysis(ctx, userId, imageId, b)
 	if err != nil {
 		plog.Errorc(ctx, "do analysis failed: %v", err)
 		return nil, exception.ErrDoAnalysis

@@ -10,7 +10,6 @@ package api
 
 import (
 	"net/http"
-	"time"
 
 	"gitea.hoven.com/core/auth-core/pkg/sdk/middleware"
 	"github.com/go-puzzles/puzzles/pgin"
@@ -23,25 +22,21 @@ type BeautyRatingApi struct {
 }
 
 func SetupRouter(
+	tokenKey string,
 	beautyService *service.BeautyRatingService,
-	storage middleware.Storage,
 ) *BeautyRatingApi {
 
-	tokenManager := middleware.NewManager(
-		storage,
-		middleware.WithCacheTTL(time.Hour*2),
-		middleware.WithCachePrefix("beauty-rating"),
-	)
-	middleware := middleware.NewAuthCoreHttpMiddleware[*middleware.UserToken](tokenManager)
+	middleware := middleware.NewAuthCoreHttpMiddleware()
 
 	router := pgin.NewServerHandlerWithOptions(
 		pgin.WithMiddlewares(
 			middleware.InjectTokenToGrpcContext(),
-			middleware.UserLoginStatMiddleware(),
+			middleware.UserLoginStatMiddleware(tokenKey),
 		),
 		pgin.WithRouters(
 			"/v1",
 			handler.NewUserHandler(beautyService, middleware),
+			handler.NewAnalysisHandler(beautyService, middleware),
 		),
 	)
 
