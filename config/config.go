@@ -20,11 +20,25 @@ type BeautyConfig struct {
 }
 
 func (bc *BeautyConfig) SetDefault() {
-	bc.ApiHost = "localhost:28084"
-	bc.ApiPrefix = "/api"
-	bc.ApiVersion = "/v1"
-	bc.ApiPort = 28084
-	bc.AuthCoreSrv = "auth-core"
+	if bc.ApiHost == "" {
+		bc.ApiHost = "localhost:28084"
+	}
+
+	if bc.ApiPrefix == "" {
+		bc.ApiPrefix = "/api"
+	}
+
+	if bc.ApiVersion == "" {
+		bc.ApiVersion = "/v1"
+	}
+
+	if bc.ApiPort == 0 {
+		bc.ApiPort = 8080
+	}
+
+	if bc.AuthCoreSrv == "" {
+		bc.AuthCoreSrv = "auth-core"
+	}
 }
 
 func (bc *BeautyConfig) Validate() error {
