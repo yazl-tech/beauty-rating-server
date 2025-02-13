@@ -44,6 +44,8 @@ func main() {
 	wechatConf := new(user.WechatConfig)
 	plog.PanicError(wechatSdkConfFlag(wechatConf))
 
+	plog.Debugf("beautyConf: %v", plog.Jsonify(beautyConf))
+
 	authCoreConn, err := grpc.DialGrpc(beautyConf.AuthCoreSrv)
 	plog.PanicError(err)
 
