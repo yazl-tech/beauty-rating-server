@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  authcore:
+    build: .
+    environment:
+      - GO_PUZZLE_SERVICE=beauty-rating:${VERSION}
+    image: ${IMAGE}:${VERSION}
+    restart: always
+    container_name: beauty-rating 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    network_mode: host
+    command:
+      - ./beauty-rating
+      - --useRemoteConfig
+    logging:
+      options:
+        max-size: 100m
+        max-file: 5
