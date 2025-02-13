@@ -27,6 +27,8 @@ type Service interface {
 	UploadAnalysisImage(ctx context.Context, avatarFile *multipart.FileHeader) (string, []byte, error)
 	GetAnalysisImage(ctx context.Context, imagePath string, writer io.Writer) error
 	DoAnalysis(ctx context.Context, userId int, imageId string, b []byte) (*AnalysisDetail, error)
+	GetFavoriteDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error)
+	GetAnalysisDetials(ctx context.Context, userId int) ([]*AnalysisDetail, error)
 	Favorite(ctx context.Context, userId int, detailId int) error
 	UnFavorite(ctx context.Context, userId int, detailId int) error
 	DeleteAnalysis(ctx context.Context, userId int, detailId int) error
@@ -44,6 +46,24 @@ func NewAnalysisService(
 	oss oss.IOSS,
 ) *DefaultAnalysisService {
 	return &DefaultAnalysisService{analyst: analyst, repo: repo, oss: oss}
+}
+
+func (as *DefaultAnalysisService) GetFavoriteDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error) {
+	resp, err := as.repo.GetUserFavoriteDetails(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (as *DefaultAnalysisService) GetAnalysisDetials(ctx context.Context, userId int) ([]*AnalysisDetail, error) {
+	resp, err := as.repo.GetUserDetails(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 func (as *DefaultAnalysisService) UploadAnalysisImage(ctx context.Context, file *multipart.FileHeader) (string, []byte, error) {

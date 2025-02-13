@@ -21,9 +21,11 @@ import (
 
 type AnalysisHandlerApp interface {
 	GetImage(ctx context.Context, imageId string, writer io.Writer) error
+	GetAnalysisDetails(ctx context.Context, userId int) (*dto.GetDetailsResponse, error)
 	DoAnalysis(ctx context.Context, userId int, fh *multipart.FileHeader) (*dto.DoAnalysisResponse, error)
 	DoFavorite(ctx context.Context, userId int, recordId int) error
 	DoUnfavorite(ctx context.Context, userId int, recordId int) error
+	GetFavoriteDetails(ctx context.Context, userId int) (*dto.GetDetailsResponse, error)
 	DeleteAnalysis(ctx context.Context, userId int, recordId int) error
 }
 
@@ -41,11 +43,41 @@ func NewAnalysisHandler(analysisApp AnalysisHandlerApp, middleware UserMiddlewar
 
 func (ah *AnalysisHandler) Init(router gin.IRouter) {
 	analysisGroup := router.Group("analysis", ah.middleware.UserLoginRequired())
+	analysisGroup.GET("", pgin.ResponseHandler(ah.getAnalysisDetails))
 	analysisGroup.POST("", pgin.ResponseHandler(ah.doAnalysisHandler))
 	analysisGroup.GET("image", pgin.RequestWithErrorHandler(ah.getImageHandler))
-	analysisGroup.POST("favorite/:repord_id", pgin.RequestWithErrorHandler(ah.doFavoriteHandler))
-	analysisGroup.POST("unfavorite/:repord_id", pgin.RequestWithErrorHandler(ah.doUnFavoriteHandler))
-	analysisGroup.DELETE(":repord_id", pgin.RequestWithErrorHandler(ah.deleteAnalysisHandler))
+	analysisGroup.GET("favorite", pgin.ResponseHandler(ah.getFavoriteDetails))
+	analysisGroup.POST("favorite/:report_id", pgin.RequestWithErrorHandler(ah.doFavoriteHandler))
+	analysisGroup.POST("unfavorite/:report_id", pgin.RequestWithErrorHandler(ah.doUnFavoriteHandler))
+	analysisGroup.DELETE(":report_id", pgin.RequestWithErrorHandler(ah.deleteAnalysisHandler))
+}
+
+func (ah *AnalysisHandler) getFavoriteDetails(ctx *gin.Context) (*dto.GetDetailsResponse, error) {
+	userId, err := ah.middleware.GetCurrentUserId(ctx)
+	if err != nil {
+		return nil, exception.ErrUnauthorized
+	}
+
+	resp, err := ah.analysisApp.GetFavoriteDetails(ctx.Request.Context(), userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (ah *AnalysisHandler) getAnalysisDetails(ctx *gin.Context) (*dto.GetDetailsResponse, error) {
+	userId, err := ah.middleware.GetCurrentUserId(ctx)
+	if err != nil {
+		return nil, exception.ErrUnauthorized
+	}
+
+	resp, err := ah.analysisApp.GetAnalysisDetails(ctx.Request.Context(), userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 func (ah *AnalysisHandler) getImageHandler(ctx *gin.Context, req *dto.GetImageRequest) error {

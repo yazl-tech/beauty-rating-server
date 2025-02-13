@@ -14,6 +14,7 @@ type Repo interface {
 	CreateAnalysisDetail(ctx context.Context, detail *AnalysisDetail) error
 	GetUserDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error)
 	GetUserDetail(ctx context.Context, userId, detailId int) (*AnalysisDetail, error)
+	GetUserFavoriteDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error)
 	UpdateAnalysisDetail(ctx context.Context, detail *AnalysisDetail) error
 	DeleteAnalysisDetail(ctx context.Context, userId, detailId int) error
 }

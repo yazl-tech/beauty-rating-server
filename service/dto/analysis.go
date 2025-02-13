@@ -30,3 +30,7 @@ type DoFavoriteRequest struct {
 type DeleteAnalysisRequest struct {
 	ReportId int `uri:"report_id"`
 }
+
+type GetDetailsResponse struct {
+	Details []*analysis.AnalysisDetail `json:"details"`
+}

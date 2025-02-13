@@ -23,7 +23,7 @@ func (bs *BeautyRatingService) WechatLogin(ctx context.Context, code, deviceId s
 	token, err := bs.userSrv.WxLogin(ctx, deviceId, code)
 	if err != nil {
 		plog.Errorc(ctx, "wechat login failed: %v", err)
-		return nil, exception.ErrWechatLogin
+		return nil, exception.ParseError(err, exception.ErrWechatLogin)
 	}
 
 	return &dto.WechatLoginResponse{
@@ -39,7 +39,7 @@ func (bs *BeautyRatingService) GetUserProfile(ctx context.Context) (*user.User, 
 	u, err := bs.userSrv.GetUserInfo(ctx)
 	if err != nil {
 		plog.Errorc(ctx, "get user profile failed: %v", err)
-		return nil, exception.ErrGetUserInfo
+		return nil, exception.ParseError(err, exception.ErrGetUserInfo)
 	}
 
 	return u, nil
@@ -49,7 +49,7 @@ func (bs *BeautyRatingService) UpdateUserName(ctx context.Context, username stri
 	err := bs.userSrv.UpdateUsername(ctx, username)
 	if err != nil {
 		plog.Errorc(ctx, "update user name failed: %v", err)
-		return exception.ErrUpdateUsername
+		return exception.ParseError(err, exception.ErrUpdateUsername)
 	}
 
 	return nil
@@ -59,7 +59,7 @@ func (bs *BeautyRatingService) UpdateUserGender(ctx context.Context, gender int)
 	err := bs.userSrv.UpdateGender(ctx, gender)
 	if err != nil {
 		plog.Errorc(ctx, "update user gender failed: %v", err)
-		return exception.ErrUpdateGender
+		return exception.ParseError(err, exception.ErrUpdateGender)
 	}
 
 	return nil
@@ -69,7 +69,7 @@ func (bs *BeautyRatingService) UploadAvatar(ctx context.Context, fh *multipart.F
 	avatarUrl, err := bs.userSrv.UploadAvatar(ctx, fh)
 	if err != nil {
 		plog.Errorc(ctx, "upload avatar failed: %v", err)
-		return "", exception.ErrUploadAvatar
+		return "", exception.ParseError(err, exception.ErrUploadAvatar)
 	}
 
 	return avatarUrl, nil
@@ -79,7 +79,7 @@ func (bs *BeautyRatingService) GetAvatar(ctx context.Context, avatarId string, w
 	err := bs.userSrv.GetAvatar(ctx, avatarId, writer)
 	if err != nil {
 		plog.Errorc(ctx, "get avatar failed: %v", err)
-		return exception.ErrGetAvatar
+		return exception.ParseError(err, exception.ErrGetAvatar)
 	}
 
 	return nil

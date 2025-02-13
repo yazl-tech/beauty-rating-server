@@ -102,14 +102,39 @@ func (ar *AnalysisRepo) UpdateAnalysisDetail(ctx context.Context, detail *analys
 	return nil
 }
 
+func (ar *AnalysisRepo) GetUserFavoriteDetails(ctx context.Context, userId int) ([]*analysis.AnalysisDetail, error) {
+	db := ar.db.Analysis
+
+	details, err := db.WithContext(ctx).Where(db.UserId.Eq(userId), db.IsFavorite.Is(true)).Find()
+	if err != nil {
+		return nil, err
+	}
+
+	detailEntyties := putils.Convert(details, func(detail *model.Analysis) *analysis.AnalysisDetail {
+		de, err := detail.ToEntity()
+		if err != nil {
+			plog.Errorc(ctx, "convert detail: %v to entity error: %v", detail.ID, err)
+			return nil
+		}
+
+		return de
+	})
+
+	return detailEntyties, nil
+}
+
 func (ar *AnalysisRepo) DeleteAnalysisDetail(ctx context.Context, userId int, detailId int) error {
 	db := ar.db.Analysis
 
-	_, err := db.WithContext(ctx).Where(db.ID.Eq(detailId), db.UserId.Eq(userId)).Delete()
+	info, err := db.WithContext(ctx).Where(db.ID.Eq(detailId), db.UserId.Eq(userId)).Delete()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return exception.ErrDetailNotFound
 	} else if err != nil {
 		return err
+	}
+
+	if info.RowsAffected == 0 {
+		return exception.ErrDetailNotFound
 	}
 
 	return nil

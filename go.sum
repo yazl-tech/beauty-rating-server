@@ -113,8 +113,6 @@ github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJn
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
 github.com/go-playground/validator/v10 v10.22.1 h1:40JcKH+bBNGFczGuoBYgX4I6m/i27HYW8P9FDk5PbgA=
 github.com/go-playground/validator/v10 v10.22.1/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
-github.com/go-puzzles/puzzles v1.1.43 h1:dN7BbSXcWyuZAgRFx+zhISL178bGg5C9iJbfaohtDO0=
-github.com/go-puzzles/puzzles v1.1.43/go.mod h1:5vy8+3r1+zN6alHFNaoMW+ktXFd5sMUiRpRZmhiuABk=
 github.com/go-puzzles/puzzles v1.1.44 h1:uc/5KOWwYQX+AydvENTIw7PPuTdlZYuJ3BuhxFcluIg=
 github.com/go-puzzles/puzzles v1.1.44/go.mod h1:5vy8+3r1+zN6alHFNaoMW+ktXFd5sMUiRpRZmhiuABk=
 github.com/go-sql-driver/mysql v1.7.0/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=

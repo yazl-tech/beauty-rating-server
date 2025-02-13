@@ -22,23 +22,47 @@ func (bs *BeautyRatingService) GetImage(ctx context.Context, imageId string, wri
 	err := bs.analysisSrv.GetAnalysisImage(ctx, imageId, writer)
 	if err != nil {
 		plog.Errorc(ctx, "get analysis image failed: %v", err)
-		return exception.ErrGetImage
+		return exception.ParseError(err, exception.ErrGetImage)
 	}
 
 	return nil
+}
+
+func (bs *BeautyRatingService) GetFavoriteDetails(ctx context.Context, userId int) (*dto.GetDetailsResponse, error) {
+	resp, err := bs.analysisSrv.GetFavoriteDetails(ctx, userId)
+	if err != nil {
+		plog.Errorc(ctx, "get favorite details failed: %v", err)
+		return nil, exception.ParseError(err, exception.ErrGetFavoriteDetails)
+	}
+
+	return &dto.GetDetailsResponse{
+		Details: resp,
+	}, nil
+}
+
+func (bs *BeautyRatingService) GetAnalysisDetails(ctx context.Context, userId int) (*dto.GetDetailsResponse, error) {
+	resp, err := bs.analysisSrv.GetAnalysisDetials(ctx, userId)
+	if err != nil {
+		plog.Errorc(ctx, "get analysis details failed: %v", err)
+		return nil, exception.ParseError(err, exception.ErrGetAnalysisDetails)
+	}
+
+	return &dto.GetDetailsResponse{
+		Details: resp,
+	}, nil
 }
 
 func (bs *BeautyRatingService) DoAnalysis(ctx context.Context, userId int, fh *multipart.FileHeader) (*dto.DoAnalysisResponse, error) {
 	imageId, b, err := bs.analysisSrv.UploadAnalysisImage(ctx, fh)
 	if err != nil {
 		plog.Errorc(ctx, "upload analysis image failed: %v", err)
-		return nil, exception.ErrUploadImage
+		return nil, exception.ParseError(err, exception.ErrUploadImage)
 	}
 
 	result, err := bs.analysisSrv.DoAnalysis(ctx, userId, imageId, b)
 	if err != nil {
 		plog.Errorc(ctx, "do analysis failed: %v", err)
-		return nil, exception.ErrDoAnalysis
+		return nil, exception.ParseError(err, exception.ErrDoAnalysis)
 	}
 
 	return &dto.DoAnalysisResponse{Detail: result}, nil
@@ -48,7 +72,7 @@ func (bs *BeautyRatingService) DoFavorite(ctx context.Context, userId int, recor
 	err := bs.analysisSrv.Favorite(ctx, userId, recordId)
 	if err != nil {
 		plog.Errorc(ctx, "do favorite failed: %v", err)
-		return exception.ErrDoFavorite
+		return exception.ParseError(err, exception.ErrDoFavorite)
 	}
 
 	return nil
@@ -58,7 +82,7 @@ func (bs *BeautyRatingService) DoUnfavorite(ctx context.Context, userId int, rec
 	err := bs.analysisSrv.UnFavorite(ctx, userId, recordId)
 	if err != nil {
 		plog.Errorc(ctx, "do unfavorite failed: %v", err)
-		return exception.ErrDoUnFavorite
+		return exception.ParseError(err, exception.ErrDoUnFavorite)
 	}
 
 	return nil
@@ -67,7 +91,8 @@ func (bs *BeautyRatingService) DoUnfavorite(ctx context.Context, userId int, rec
 func (bs *BeautyRatingService) DeleteAnalysis(ctx context.Context, userId int, recordId int) error {
 	err := bs.analysisSrv.DeleteAnalysis(ctx, userId, recordId)
 	if err != nil {
-		return exception.ErrDeleteAnalysis
+		plog.Errorc(ctx, "delete analysis failed: %v", err)
+		return exception.ParseError(err, exception.ErrDeleteAnalysis)
 	}
 
 	return nil
