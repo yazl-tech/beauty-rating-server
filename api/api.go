@@ -14,7 +14,11 @@ import (
 	"gitea.hoven.com/core/auth-core/pkg/sdk/middleware"
 	"github.com/go-puzzles/puzzles/pgin"
 	"github.com/yazl-tech/beauty-rating-server/api/handler"
+	"github.com/yazl-tech/beauty-rating-server/domain/user"
 	"github.com/yazl-tech/beauty-rating-server/service"
+	"google.golang.org/grpc"
+
+	sdkHttpHandler "gitea.hoven.com/core/auth-core/pkg/sdk/handler"
 )
 
 type BeautyRatingApi struct {
@@ -23,20 +27,29 @@ type BeautyRatingApi struct {
 
 func SetupRouter(
 	tokenKey string,
+	wechatConf *user.WechatConfig,
+	authCoreConn grpc.ClientConnInterface,
 	beautyService *service.BeautyRatingService,
 ) *BeautyRatingApi {
+	authCoreMiddleware := middleware.NewAuthCoreHttpMiddleware()
 
-	middleware := middleware.NewAuthCoreHttpMiddleware()
+	authCoreHandler := sdkHttpHandler.NewAuthCoreSdkHttpHandler(
+		authCoreConn,
+		authCoreMiddleware,
+		sdkHttpHandler.WithAuthBaseRoutes(),
+		sdkHttpHandler.WithWechatRoutes(wechatConf.AppId, wechatConf.SecretId),
+		sdkHttpHandler.WithUserRoutes(),
+	)
 
 	router := pgin.NewServerHandlerWithOptions(
 		pgin.WithMiddlewares(
-			middleware.InjectTokenToGrpcContext(),
-			middleware.UserLoginStatMiddleware(tokenKey),
+			authCoreMiddleware.InjectTokenToGrpcContext(),
+			authCoreMiddleware.UserLoginStatMiddleware(tokenKey),
 		),
 		pgin.WithRouters(
 			"/v1",
-			handler.NewUserHandler(beautyService, middleware),
-			handler.NewAnalysisHandler(beautyService, middleware),
+			authCoreHandler,
+			handler.NewAnalysisHandler(beautyService, authCoreMiddleware),
 		),
 	)
 

@@ -11,7 +11,6 @@ package main
 import (
 	"github.com/go-puzzles/puzzles/cores"
 	"github.com/go-puzzles/puzzles/dialer/grpc"
-	"github.com/go-puzzles/puzzles/goredis"
 	"github.com/go-puzzles/puzzles/pflags"
 	"github.com/go-puzzles/puzzles/pgorm"
 	"github.com/go-puzzles/puzzles/plog"
@@ -29,7 +28,6 @@ var (
 	port              = pflags.Int("port", 28084, "Port to listen on")
 	authCoreSrv       = pflags.String("authCoreSrv", "auth-core", "auth-core server name")
 	tokenKey          = pflags.StringRequired("tokenKey", "toekn key")
-	redisConfFlag     = pflags.Struct("redisAuth", (*goredis.RedisConf)(nil), "redis auth config")
 	mysqlConfFlag     = pflags.Struct("mysqlAuth", (*pgorm.MysqlConfig)(nil), "mysql auth config")
 	minioConfFlag     = pflags.Struct("minioAuth", (*minio.MinioConfig)(nil), "minio auth config")
 	wechatSdkConfFlag = pflags.Struct("wechat", (*user.WechatConfig)(nil), "wechat sdk config")
@@ -45,8 +43,7 @@ func main() {
 	plog.PanicError(minioConfFlag(minioConf))
 	mysqlConf := new(pgorm.MysqlConfig)
 	plog.PanicError(mysqlConfFlag(mysqlConf))
-	redisConf := new(goredis.RedisConf)
-	plog.PanicError(redisConfFlag(redisConf))
+
 	wechatConf := new(user.WechatConfig)
 	plog.PanicError(wechatSdkConfFlag(wechatConf))
 
@@ -56,10 +53,8 @@ func main() {
 	plog.PanicError(pgorm.AutoMigrate(mysqlConf))
 	db := pgorm.GetDbByConf(mysqlConf)
 
-	_ = redisConf.DialRedisClient()
-
 	beautyService := service.NewBeautyRatingService(db, minioClient, wechatConf, authCoreConn)
-	router := api.SetupRouter(tokenKey(), beautyService)
+	router := api.SetupRouter(tokenKey(), wechatConf, authCoreConn, beautyService)
 
 	coreSrv := cores.NewPuzzleCore(
 		cores.WithService(pflags.GetServiceName()),

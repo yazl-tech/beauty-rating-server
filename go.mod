@@ -3,9 +3,9 @@ module github.com/yazl-tech/beauty-rating-server
 go 1.23.4
 
 require (
-	gitea.hoven.com/core/auth-core v1.0.14
+	gitea.hoven.com/core/auth-core v1.0.16
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-puzzles/puzzles v1.1.43
+	github.com/go-puzzles/puzzles v1.1.44
 	github.com/google/uuid v1.6.0
 	github.com/minio/minio-go/v7 v7.0.82
 	github.com/pkg/errors v0.9.1
