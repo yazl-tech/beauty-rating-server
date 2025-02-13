@@ -10,8 +10,8 @@ package handler
 
 import (
 	"context"
-	"io"
 	"mime/multipart"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-puzzles/puzzles/pgin"
@@ -20,7 +20,7 @@ import (
 )
 
 type AnalysisHandlerApp interface {
-	GetImage(ctx context.Context, imageId string, writer io.Writer) error
+	GetImage(ctx context.Context, imageId string, rw http.ResponseWriter, req *http.Request)
 	GetAnalysisDetails(ctx context.Context, userId int) (*dto.GetDetailsResponse, error)
 	DoAnalysis(ctx context.Context, userId int, fh *multipart.FileHeader) (*dto.DoAnalysisResponse, error)
 	DoFavorite(ctx context.Context, userId int, recordId int) error
@@ -42,14 +42,16 @@ func NewAnalysisHandler(analysisApp AnalysisHandlerApp, middleware UserMiddlewar
 }
 
 func (ah *AnalysisHandler) Init(router gin.IRouter) {
-	analysisGroup := router.Group("analysis", ah.middleware.UserLoginRequired())
-	analysisGroup.GET("", pgin.ResponseHandler(ah.getAnalysisDetails))
-	analysisGroup.POST("", pgin.ResponseHandler(ah.doAnalysisHandler))
-	analysisGroup.GET("image", pgin.RequestWithErrorHandler(ah.getImageHandler))
-	analysisGroup.GET("favorite", pgin.ResponseHandler(ah.getFavoriteDetails))
-	analysisGroup.POST("favorite/:report_id", pgin.RequestWithErrorHandler(ah.doFavoriteHandler))
-	analysisGroup.POST("unfavorite/:report_id", pgin.RequestWithErrorHandler(ah.doUnFavoriteHandler))
-	analysisGroup.DELETE(":report_id", pgin.RequestWithErrorHandler(ah.deleteAnalysisHandler))
+	analysisGrp := router.Group("analysis")
+	analysisGrp.GET("image/:imageId", pgin.RequestHandler(ah.getImageHandler))
+
+	needLoginGrp := router.Group("analysis", ah.middleware.UserLoginRequired())
+	needLoginGrp.GET("", pgin.ResponseHandler(ah.getAnalysisDetails))
+	needLoginGrp.POST("", pgin.ResponseHandler(ah.doAnalysisHandler))
+	needLoginGrp.GET("favorite", pgin.ResponseHandler(ah.getFavoriteDetails))
+	needLoginGrp.POST("favorite/:report_id", pgin.RequestWithErrorHandler(ah.doFavoriteHandler))
+	needLoginGrp.POST("unfavorite/:report_id", pgin.RequestWithErrorHandler(ah.doUnFavoriteHandler))
+	needLoginGrp.DELETE(":report_id", pgin.RequestWithErrorHandler(ah.deleteAnalysisHandler))
 }
 
 func (ah *AnalysisHandler) getFavoriteDetails(ctx *gin.Context) (*dto.GetDetailsResponse, error) {
@@ -80,8 +82,8 @@ func (ah *AnalysisHandler) getAnalysisDetails(ctx *gin.Context) (*dto.GetDetails
 	return resp, nil
 }
 
-func (ah *AnalysisHandler) getImageHandler(ctx *gin.Context, req *dto.GetImageRequest) error {
-	return ah.analysisApp.GetImage(ctx.Request.Context(), req.ImageId, ctx.Writer)
+func (ah *AnalysisHandler) getImageHandler(ctx *gin.Context, req *dto.GetImageRequest) {
+	ah.analysisApp.GetImage(ctx.Request.Context(), req.ImageId, ctx.Writer, ctx.Request)
 }
 
 func (ah *AnalysisHandler) doAnalysisHandler(ctx *gin.Context) (*dto.DoAnalysisResponse, error) {

@@ -11,12 +11,18 @@ package analysis
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"math/rand"
 	"mime/multipart"
+	"net/http"
+	"net/url"
 	"time"
 
+	"github.com/go-puzzles/puzzles/plog"
+	"github.com/go-puzzles/puzzles/putils"
 	"github.com/pkg/errors"
+	"github.com/yazl-tech/beauty-rating-server/config"
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
 	"github.com/yazl-tech/beauty-rating-server/pkg/exception"
 	"github.com/yazl-tech/beauty-rating-server/pkg/oss"
@@ -25,7 +31,7 @@ import (
 
 type Service interface {
 	UploadAnalysisImage(ctx context.Context, avatarFile *multipart.FileHeader) (string, []byte, error)
-	GetAnalysisImage(ctx context.Context, imagePath string, writer io.Writer) error
+	GetAnalysisImage(ctx context.Context, imageId string, rw http.ResponseWriter, req *http.Request)
 	DoAnalysis(ctx context.Context, userId int, imageId string, b []byte) (*AnalysisDetail, error)
 	GetFavoriteDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error)
 	GetAnalysisDetials(ctx context.Context, userId int) ([]*AnalysisDetail, error)
@@ -35,17 +41,26 @@ type Service interface {
 }
 
 type DefaultAnalysisService struct {
-	analyst analyst.Analyst
-	repo    Repo
-	oss     oss.IOSS
+	beautyConf     *config.BeautyConfig
+	analyst        analyst.Analyst
+	repo           Repo
+	oss            oss.IOSS
+	analysisImgDir string
 }
 
 func NewAnalysisService(
+	beautyConf *config.BeautyConfig,
 	analyst analyst.Analyst,
 	repo Repo,
 	oss oss.IOSS,
 ) *DefaultAnalysisService {
-	return &DefaultAnalysisService{analyst: analyst, repo: repo, oss: oss}
+	return &DefaultAnalysisService{
+		beautyConf:     beautyConf,
+		analyst:        analyst,
+		repo:           repo,
+		oss:            oss,
+		analysisImgDir: "analysis",
+	}
 }
 
 func (as *DefaultAnalysisService) GetFavoriteDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error) {
@@ -54,7 +69,38 @@ func (as *DefaultAnalysisService) GetFavoriteDetails(ctx context.Context, userId
 		return nil, err
 	}
 
-	return resp, nil
+	return as.convertImages(ctx, resp), nil
+}
+
+func (as *DefaultAnalysisService) convertImage(ctx context.Context, detail *AnalysisDetail) *AnalysisDetail {
+	objName := fmt.Sprintf("%s/%s", as.analysisImgDir, detail.ImageUrl)
+	presignedUrl, err := as.presignImageUrl(ctx, objName, 5*time.Minute)
+	if err != nil {
+		plog.Warnc(ctx, "presignedUrl: %v failed: %v", detail.ImageUrl, err)
+		return nil
+	}
+
+	presignedUrl.Host = as.beautyConf.ApiHost
+	// /api/v1/analysis/image/:imageId
+	presignedUrl.Path = fmt.Sprintf("%s%s/analysis/image/%s", as.beautyConf.ApiPrefix, as.beautyConf.ApiVersion, detail.ImageUrl)
+
+	detail.ImageUrl = presignedUrl.String()
+	return detail
+}
+
+func (as *DefaultAnalysisService) convertImages(ctx context.Context, details []*AnalysisDetail) []*AnalysisDetail {
+	return putils.Convert(details, func(d *AnalysisDetail) *AnalysisDetail {
+		return as.convertImage(ctx, d)
+	})
+}
+
+func (as *DefaultAnalysisService) presignImageUrl(ctx context.Context, objName string, expires time.Duration) (*url.URL, error) {
+	u, err := as.oss.PresignedGetObject(ctx, objName, expires)
+	if err != nil {
+		return nil, errors.Wrap(err, "presignedImage")
+	}
+
+	return u, nil
 }
 
 func (as *DefaultAnalysisService) GetAnalysisDetials(ctx context.Context, userId int) ([]*AnalysisDetail, error) {
@@ -63,7 +109,7 @@ func (as *DefaultAnalysisService) GetAnalysisDetials(ctx context.Context, userId
 		return nil, err
 	}
 
-	return resp, nil
+	return as.convertImages(ctx, resp), nil
 }
 
 func (as *DefaultAnalysisService) UploadAnalysisImage(ctx context.Context, file *multipart.FileHeader) (string, []byte, error) {
@@ -76,7 +122,7 @@ func (as *DefaultAnalysisService) UploadAnalysisImage(ctx context.Context, file 
 	var fileBytes bytes.Buffer
 	teeReader := io.TeeReader(src, &fileBytes)
 
-	imageUrl, err := as.oss.UploadFile(ctx, file.Size, "analysis", file.Filename, teeReader)
+	imageUrl, err := as.oss.UploadFile(ctx, file.Size, as.analysisImgDir, file.Filename, teeReader)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "uploadAnalysisImage")
 	}
@@ -84,8 +130,9 @@ func (as *DefaultAnalysisService) UploadAnalysisImage(ctx context.Context, file 
 	return imageUrl, fileBytes.Bytes(), nil
 }
 
-func (as *DefaultAnalysisService) GetAnalysisImage(ctx context.Context, imagePath string, writer io.Writer) error {
-	return as.oss.GetFile(ctx, imagePath, writer)
+func (as *DefaultAnalysisService) GetAnalysisImage(ctx context.Context, imageId string, rw http.ResponseWriter, req *http.Request) {
+	objName := fmt.Sprintf("%s/%s", as.analysisImgDir, imageId)
+	as.oss.ProxyPresignedGetObject(objName, rw, req)
 }
 
 func (as *DefaultAnalysisService) DoAnalysis(ctx context.Context, userId int, imageId string, b []byte) (*AnalysisDetail, error) {
@@ -110,7 +157,7 @@ func (as *DefaultAnalysisService) DoAnalysis(ctx context.Context, userId int, im
 		return nil, err
 	}
 
-	return detail, nil
+	return as.convertImage(ctx, detail), nil
 }
 
 func (as *DefaultAnalysisService) Favorite(ctx context.Context, userId int, detailId int) error {

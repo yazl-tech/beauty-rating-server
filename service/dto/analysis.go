@@ -11,11 +11,11 @@ package dto
 import "github.com/yazl-tech/beauty-rating-server/domain/analysis"
 
 type GetImageRequest struct {
-	ImageId string `form:"image_id"`
+	ImageId string `uri:"imageId" binding:"required"`
 }
 
 type DoAnalysisRequest struct {
-	ImageId string `json:"image_id"`
+	ImageId string `json:"image_id" binding:"required"`
 }
 
 type DoAnalysisResponse struct {
@@ -24,11 +24,11 @@ type DoAnalysisResponse struct {
 }
 
 type DoFavoriteRequest struct {
-	ReportId int `uri:"report_id"`
+	ReportId int `uri:"report_id" binding:"required"`
 }
 
 type DeleteAnalysisRequest struct {
-	ReportId int `uri:"report_id"`
+	ReportId int `uri:"report_id" binding:"required"`
 }
 
 type GetDetailsResponse struct {

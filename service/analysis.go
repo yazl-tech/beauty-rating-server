@@ -10,22 +10,16 @@ package service
 
 import (
 	"context"
-	"io"
 	"mime/multipart"
+	"net/http"
 
 	"github.com/go-puzzles/puzzles/plog"
 	"github.com/yazl-tech/beauty-rating-server/pkg/exception"
 	"github.com/yazl-tech/beauty-rating-server/service/dto"
 )
 
-func (bs *BeautyRatingService) GetImage(ctx context.Context, imageId string, writer io.Writer) error {
-	err := bs.analysisSrv.GetAnalysisImage(ctx, imageId, writer)
-	if err != nil {
-		plog.Errorc(ctx, "get analysis image failed: %v", err)
-		return exception.ParseError(err, exception.ErrGetImage)
-	}
-
-	return nil
+func (bs *BeautyRatingService) GetImage(ctx context.Context, imageId string, rw http.ResponseWriter, req *http.Request) {
+	bs.analysisSrv.GetAnalysisImage(ctx, imageId, rw, req)
 }
 
 func (bs *BeautyRatingService) GetFavoriteDetails(ctx context.Context, userId int) (*dto.GetDetailsResponse, error) {

@@ -14,6 +14,7 @@ import (
 	"gitea.hoven.com/core/auth-core/pkg/sdk/middleware"
 	"github.com/go-puzzles/puzzles/pgin"
 	"github.com/yazl-tech/beauty-rating-server/api/handler"
+	"github.com/yazl-tech/beauty-rating-server/config"
 	"github.com/yazl-tech/beauty-rating-server/domain/user"
 	"github.com/yazl-tech/beauty-rating-server/service"
 	"google.golang.org/grpc"
@@ -26,7 +27,7 @@ type BeautyRatingApi struct {
 }
 
 func SetupRouter(
-	tokenKey string,
+	beautyConf *config.BeautyConfig,
 	wechatConf *user.WechatConfig,
 	authCoreConn grpc.ClientConnInterface,
 	beautyService *service.BeautyRatingService,
@@ -45,10 +46,10 @@ func SetupRouter(
 	router := pgin.NewServerHandlerWithOptions(
 		pgin.WithMiddlewares(
 			authCoreMiddleware.InjectTokenToGrpcContext(),
-			authCoreMiddleware.UserLoginStatMiddleware(tokenKey),
+			authCoreMiddleware.UserLoginStatMiddleware(beautyConf.TokenKey),
 		),
 		pgin.WithRouters(
-			"/v1",
+			beautyConf.ApiVersion,
 			authCoreHandler,
 			handler.NewAnalysisHandler(beautyService, authCoreMiddleware),
 		),

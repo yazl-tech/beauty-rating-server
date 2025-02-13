@@ -14,6 +14,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -107,20 +108,20 @@ func (m *MinioOss) generateObjName(obj string) string {
 }
 
 func (m *MinioOss) UploadFile(ctx context.Context, size int64, dir, objName string, obj io.Reader) (uri string, err error) {
-	newObjName := m.generateObjName(objName)
+	rawObjName := m.generateObjName(objName)
 
 	putOpt := minio.PutObjectOptions{
 		UserTags: map[string]string{},
 	}
 
-	newObjName = fmt.Sprintf("%s/%s", dir, newObjName)
+	newObjName := fmt.Sprintf("%s/%s", dir, rawObjName)
 	_, err = m.client.PutObject(ctx, m.Bucket, newObjName, obj, size, putOpt)
 	if err != nil {
 		return "", errors.Wrap(err, "uploadMinio")
 	}
 
-	// dir_name/1731850656800-d887240b-0177-44c7-853d-69f14b7cf874.jpeg
-	return newObjName, nil
+	// 1731850656800-d887240b-0177-44c7-853d-69f14b7cf874.jpeg
+	return rawObjName, nil
 }
 
 func (m *MinioOss) GetFile(ctx context.Context, objName string, w io.Writer) error {
@@ -136,4 +137,25 @@ func (m *MinioOss) GetFile(ctx context.Context, objName string, w io.Writer) err
 	}
 
 	return nil
+}
+
+func (m *MinioOss) PresignedGetObject(ctx context.Context, objName string, expires time.Duration) (*url.URL, error) {
+	u, err := m.client.PresignedGetObject(ctx, m.Bucket, objName, expires, url.Values{})
+	if err != nil {
+		return nil, errors.Wrap(err, "presignedGetObject")
+	}
+
+	plog.Debugf("presigned origin url: %s", u.String())
+
+	return u, nil
+}
+
+func (m *MinioOss) ProxyPresignedGetObject(objName string, rw http.ResponseWriter, req *http.Request) {
+	minioEndpoint := m.client.EndpointURL()
+	proxy := httputil.NewSingleHostReverseProxy(minioEndpoint)
+	req.URL.Path = fmt.Sprintf("%s/%s", m.Bucket, objName)
+	req.Host = minioEndpoint.Host
+
+	plog.Debugf("Proxy get object url: %s", req.URL.String())
+	proxy.ServeHTTP(rw, req)
 }

@@ -9,6 +9,7 @@
 package service
 
 import (
+	"github.com/yazl-tech/beauty-rating-server/config"
 	"github.com/yazl-tech/beauty-rating-server/domain/analysis"
 	"github.com/yazl-tech/beauty-rating-server/domain/user"
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst/mock"
@@ -27,13 +28,14 @@ type BeautyRatingService struct {
 func NewBeautyRatingService(
 	db *gorm.DB,
 	oss oss.IOSS,
+	beautyConf *config.BeautyConfig,
 	wechatConfig *user.WechatConfig,
 	authCoreConn grpc.ClientConnInterface,
 ) *BeautyRatingService {
 	mockAnlyst := mock.NewMockAnalyst()
 
 	analysisRepo := analysisRepo.NewAnalysisRepo(db)
-	analysisSrv := analysis.NewAnalysisService(mockAnlyst, analysisRepo, oss)
+	analysisSrv := analysis.NewAnalysisService(beautyConf, mockAnlyst, analysisRepo, oss)
 
 	userSrv := user.NewUserService(wechatConfig, authCoreConn)
 

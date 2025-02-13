@@ -15,6 +15,7 @@ import (
 	"github.com/go-puzzles/puzzles/pgorm"
 	"github.com/go-puzzles/puzzles/plog"
 	"github.com/yazl-tech/beauty-rating-server/api"
+	"github.com/yazl-tech/beauty-rating-server/config"
 	"github.com/yazl-tech/beauty-rating-server/domain/user"
 	"github.com/yazl-tech/beauty-rating-server/pkg/dal/model"
 	"github.com/yazl-tech/beauty-rating-server/pkg/oss/minio"
@@ -25,9 +26,7 @@ import (
 )
 
 var (
-	port              = pflags.Int("port", 28084, "Port to listen on")
-	authCoreSrv       = pflags.String("authCoreSrv", "auth-core", "auth-core server name")
-	tokenKey          = pflags.StringRequired("tokenKey", "toekn key")
+	beautyConfFlag    = pflags.Struct("beautyConf", (*config.BeautyConfig)(nil), "beauty configuration")
 	mysqlConfFlag     = pflags.Struct("mysqlAuth", (*pgorm.MysqlConfig)(nil), "mysql auth config")
 	minioConfFlag     = pflags.Struct("minioAuth", (*minio.MinioConfig)(nil), "minio auth config")
 	wechatSdkConfFlag = pflags.Struct("wechat", (*user.WechatConfig)(nil), "wechat sdk config")
@@ -36,16 +35,17 @@ var (
 func main() {
 	pflags.Parse()
 
-	authCoreConn, err := grpc.DialGrpc(authCoreSrv())
-	plog.PanicError(err)
-
+	beautyConf := new(config.BeautyConfig)
+	plog.PanicError(beautyConfFlag(beautyConf))
 	minioConf := new(minio.MinioConfig)
 	plog.PanicError(minioConfFlag(minioConf))
 	mysqlConf := new(pgorm.MysqlConfig)
 	plog.PanicError(mysqlConfFlag(mysqlConf))
-
 	wechatConf := new(user.WechatConfig)
 	plog.PanicError(wechatSdkConfFlag(wechatConf))
+
+	authCoreConn, err := grpc.DialGrpc(beautyConf.AuthCoreSrv)
+	plog.PanicError(err)
 
 	minioClient := minio.NewMinioOss(minioConf)
 
@@ -53,14 +53,14 @@ func main() {
 	plog.PanicError(pgorm.AutoMigrate(mysqlConf))
 	db := pgorm.GetDbByConf(mysqlConf)
 
-	beautyService := service.NewBeautyRatingService(db, minioClient, wechatConf, authCoreConn)
-	router := api.SetupRouter(tokenKey(), wechatConf, authCoreConn, beautyService)
+	beautyService := service.NewBeautyRatingService(db, minioClient, beautyConf, wechatConf, authCoreConn)
+	router := api.SetupRouter(beautyConf, wechatConf, authCoreConn, beautyService)
 
 	coreSrv := cores.NewPuzzleCore(
 		cores.WithService(pflags.GetServiceName()),
 		consulpuzzle.WithConsulRegister(),
 		httppuzzle.WithCoreHttpCORS(),
-		httppuzzle.WithCoreHttpPuzzle("/api", router),
+		httppuzzle.WithCoreHttpPuzzle(beautyConf.ApiPrefix, router),
 	)
-	plog.PanicError(cores.Start(coreSrv, port()))
+	plog.PanicError(cores.Start(coreSrv, beautyConf.ApiPort))
 }
