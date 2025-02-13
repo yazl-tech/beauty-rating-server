@@ -1,19 +1,27 @@
 version: '3.8'
 services:
-  authcore:
+  beauty:
     build: .
     environment:
       - GO_PUZZLE_SERVICE=beauty-rating:${VERSION}
     image: ${IMAGE}:${VERSION}
     restart: always
-    container_name: beauty-rating 
+    container_name: beauty-rating
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    network_mode: host
+    ports:
+      - 28084:28084
+    networks:
+      - yong-network
     command:
-      - ./beauty-rating
+      - ./server
       - --useRemoteConfig
     logging:
       options:
         max-size: 100m
         max-file: 5
+
+networks:
+  yong-network:
+    external: true
+    name: yong-network
