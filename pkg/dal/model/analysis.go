@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/go-puzzles/puzzles/putils"
 	"github.com/pkg/errors"
 	"github.com/yazl-tech/beauty-rating-server/domain/analysis"
 	"gorm.io/datatypes"
@@ -70,12 +71,14 @@ func (a *Analysis) ToEntity() (ad *analysis.AnalysisDetail, err error) {
 	}
 
 	ad = &analysis.AnalysisDetail{
-		ID:           a.ID,
-		UserID:       a.UserId,
-		ImageUrl:     a.ImageUrl,
-		Score:        a.Score,
-		Description:  a.Description,
-		IsFavorite:   a.IsFavorite,
+		ID:          a.ID,
+		UserID:      a.UserId,
+		ImageUrl:    a.ImageUrl,
+		Score:       a.Score,
+		Description: a.Description,
+		IsFavorite:  a.IsFavorite,
+		// TODO:
+		Percentile:   putils.RandInt(80, 99),
 		Date:         a.CreatedAt,
 		Tags:         make([]string, 0),
 		ScoreDetails: make([]analysis.ScoreDetail, 0),
