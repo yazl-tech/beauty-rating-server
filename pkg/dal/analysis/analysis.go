@@ -106,13 +106,9 @@ func (ar *AnalysisRepo) UpdateAnalysisDetail(ctx context.Context, detail *analys
 	}
 
 	db := ar.db.Analysis
-	info, err := db.WithContext(ctx).Where(db.ID.Eq(detail.ID)).Updates(detailDal)
+	err = db.WithContext(ctx).Where(db.ID.Eq(detail.ID)).Save(detailDal)
 	if err != nil {
 		return err
-	}
-
-	if info.RowsAffected == 0 {
-		return exception.ErrDetailNotFound
 	}
 
 	return nil

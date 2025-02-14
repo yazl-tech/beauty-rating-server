@@ -42,6 +42,7 @@ func (a *Analysis) FromEntity(entity *analysis.AnalysisDetail) (err error) {
 		return nil
 	}
 
+	a.ID = entity.ID
 	a.UserId = entity.UserID
 	a.ImageUrl = entity.ImageUrl
 	a.Score = entity.Score
