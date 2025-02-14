@@ -9,6 +9,7 @@
 package analysis
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
@@ -43,4 +44,14 @@ func parseAnalystDetails(d []analyst.Detail) []ScoreDetail {
 		})
 	}
 	return result
+}
+
+type ShareDetailToken struct {
+	DetailId int    `json:"detailId"`
+	Expires  int64  `json:"expires"`
+	Sig      string `json:"sig"`
+}
+
+func (st *ShareDetailToken) String() string {
+	return fmt.Sprintf("detailId=%d&expires=%d&sig=%s", st.DetailId, st.Expires, st.Sig)
 }

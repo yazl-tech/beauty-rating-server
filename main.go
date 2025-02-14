@@ -55,7 +55,7 @@ func main() {
 	plog.PanicError(pgorm.AutoMigrate(mysqlConf))
 	db := pgorm.GetDbByConf(mysqlConf)
 
-	beautyService := service.NewBeautyRatingService(db, minioClient, beautyConf, wechatConf, authCoreConn)
+	beautyService := service.NewBeautyRatingService(db, minioClient, authCoreConn, beautyConf, wechatConf)
 	router := api.SetupRouter(beautyConf, wechatConf, authCoreConn, beautyService)
 
 	coreSrv := cores.NewPuzzleCore(

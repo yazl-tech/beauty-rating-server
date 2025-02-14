@@ -11,6 +11,9 @@ package analysis
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"math/rand"
@@ -35,10 +38,14 @@ type Service interface {
 	DoAnalysis(ctx context.Context, userId int, imageId string, b []byte) (*AnalysisDetail, error)
 	GetFavoriteDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error)
 	GetAnalysisDetials(ctx context.Context, userId int) ([]*AnalysisDetail, error)
+	ShareAnalysisDetail(ctx context.Context, userId, reportId int) (*ShareDetailToken, error)
+	GetShareDetail(ctx context.Context, token *ShareDetailToken) (*AnalysisDetail, error)
 	Favorite(ctx context.Context, userId int, detailId int) error
 	UnFavorite(ctx context.Context, userId int, detailId int) error
 	DeleteAnalysis(ctx context.Context, userId int, detailId int) error
 }
+
+var _ Service = (*DefaultAnalysisService)(nil)
 
 type DefaultAnalysisService struct {
 	beautyConf     *config.BeautyConfig
@@ -61,6 +68,64 @@ func NewAnalysisService(
 		oss:            oss,
 		analysisImgDir: "analysis",
 	}
+}
+
+func (as *DefaultAnalysisService) verifyShareToken(token *ShareDetailToken) (err error) {
+	if time.Now().Unix() > token.Expires {
+		return exception.ErrShareExpires
+	}
+
+	data := fmt.Sprintf("%d/%d", token.DetailId, token.Expires)
+	h := hmac.New(sha256.New, []byte(as.beautyConf.ShareSecretKey))
+	h.Write([]byte(data))
+	expectedSig := hex.EncodeToString(h.Sum(nil))
+
+	if !hmac.Equal([]byte(expectedSig), []byte(token.Sig)) {
+		return exception.ErrShareTokenInvalidates
+	}
+
+	return nil
+}
+
+func (as *DefaultAnalysisService) generateShareToken(detailId int, expiresDura time.Duration) *ShareDetailToken {
+	expires := time.Now().Add(expiresDura).Unix()
+	data := fmt.Sprintf("%d/%d", detailId, expires)
+
+	h := hmac.New(sha256.New, []byte(as.beautyConf.ShareSecretKey))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+
+	return &ShareDetailToken{
+		DetailId: detailId,
+		Expires:  int64(expires),
+		Sig:      signature,
+	}
+}
+
+func (as *DefaultAnalysisService) ShareAnalysisDetail(ctx context.Context, userId, reportId int) (*ShareDetailToken, error) {
+	exists := as.repo.CheckDetailExists(ctx, userId, reportId)
+	if !exists {
+		return nil, exception.ErrDetailNotFound
+	}
+
+	expires := time.Hour * 24
+	shareToken := as.generateShareToken(reportId, expires)
+
+	return shareToken, nil
+}
+
+func (as *DefaultAnalysisService) GetShareDetail(ctx context.Context, token *ShareDetailToken) (*AnalysisDetail, error) {
+	err := as.verifyShareToken(token)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse share token failed")
+	}
+
+	detail, err := as.repo.GetDetail(ctx, token.DetailId)
+	if err != nil {
+		return nil, err
+	}
+
+	return as.convertImage(ctx, detail), nil
 }
 
 func (as *DefaultAnalysisService) GetFavoriteDetails(ctx context.Context, userId int) ([]*AnalysisDetail, error) {

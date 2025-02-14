@@ -28,14 +28,19 @@ type BeautyRatingService struct {
 func NewBeautyRatingService(
 	db *gorm.DB,
 	oss oss.IOSS,
+	authCoreConn grpc.ClientConnInterface,
 	beautyConf *config.BeautyConfig,
 	wechatConfig *user.WechatConfig,
-	authCoreConn grpc.ClientConnInterface,
 ) *BeautyRatingService {
 	mockAnlyst := mock.NewMockAnalyst()
 
 	analysisRepo := analysisRepo.NewAnalysisRepo(db)
-	analysisSrv := analysis.NewAnalysisService(beautyConf, mockAnlyst, analysisRepo, oss)
+	analysisSrv := analysis.NewAnalysisService(
+		beautyConf,
+		mockAnlyst,
+		analysisRepo,
+		oss,
+	)
 
 	userSrv := user.NewUserService(wechatConfig, authCoreConn)
 

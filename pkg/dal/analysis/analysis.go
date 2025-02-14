@@ -81,6 +81,19 @@ func (ar *AnalysisRepo) GetUserDetail(ctx context.Context, userId int, detailId 
 	return detail.ToEntity()
 }
 
+func (ar *AnalysisRepo) GetDetail(ctx context.Context, detailId int) (*analysis.AnalysisDetail, error) {
+	db := ar.db.Analysis
+
+	detail, err := db.WithContext(ctx).Where(db.ID.Eq(detailId)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, exception.ErrDetailNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	return detail.ToEntity()
+}
+
 func (ar *AnalysisRepo) UpdateAnalysisDetail(ctx context.Context, detail *analysis.AnalysisDetail) error {
 	if detail.ID == 0 {
 		return exception.ErrNotSpecifyDetail
@@ -141,4 +154,15 @@ func (ar *AnalysisRepo) DeleteAnalysisDetail(ctx context.Context, userId int, de
 	}
 
 	return nil
+}
+
+func (ar *AnalysisRepo) CheckDetailExists(ctx context.Context, userId, detailId int) bool {
+	db := ar.db.Analysis
+
+	count, err := db.WithContext(ctx).Where(db.ID.Eq(detailId), db.UserId.Eq(userId)).Count()
+	if err != nil {
+		return false
+	}
+
+	return count > 0
 }

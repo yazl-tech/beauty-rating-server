@@ -14,9 +14,38 @@ import (
 	"net/http"
 
 	"github.com/go-puzzles/puzzles/plog"
+	"github.com/yazl-tech/beauty-rating-server/domain/analysis"
 	"github.com/yazl-tech/beauty-rating-server/pkg/exception"
 	"github.com/yazl-tech/beauty-rating-server/service/dto"
 )
+
+func (bs *BeautyRatingService) GetShareDetail(ctx context.Context, shareToken *dto.GetShareDetailRequest) (*dto.GetDetailResponse, error) {
+	detail, err := bs.analysisSrv.GetShareDetail(ctx, &analysis.ShareDetailToken{
+		Sig:      shareToken.Sig,
+		Expires:  shareToken.Expires,
+		DetailId: shareToken.DetailId,
+	})
+	if err != nil {
+		plog.Errorc(ctx, "get share detail failed: %v", err)
+		return nil, exception.ParseError(err, exception.ErrGetShareDetail)
+	}
+
+	return &dto.GetDetailResponse{
+		Detail: detail,
+	}, nil
+}
+
+func (bs *BeautyRatingService) ShareAnalysisDetail(ctx context.Context, userId, reportId int) (*dto.ShareDetailResponse, error) {
+	shareToken, err := bs.analysisSrv.ShareAnalysisDetail(ctx, userId, reportId)
+	if err != nil {
+		plog.Errorc(ctx, "share analysis detail failed: %v", err)
+		return nil, exception.ParseError(err, exception.ErrShareAnalysisDetail)
+	}
+
+	return &dto.ShareDetailResponse{
+		UrlQuery: shareToken.String(),
+	}, nil
+}
 
 func (bs *BeautyRatingService) GetImage(ctx context.Context, imageId string, rw http.ResponseWriter, req *http.Request) {
 	bs.analysisSrv.GetAnalysisImage(ctx, imageId, rw, req)

@@ -8,15 +8,20 @@
 
 package config
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/go-puzzles/puzzles/putils"
+)
 
 type BeautyConfig struct {
-	ApiHost     string
-	ApiPrefix   string
-	ApiVersion  string
-	ApiPort     int
-	AuthCoreSrv string
-	TokenKey    string
+	ApiHost        string
+	ApiPrefix      string
+	ApiVersion     string
+	ApiPort        int
+	AuthCoreSrv    string
+	TokenKey       string
+	ShareSecretKey string
 }
 
 func (bc *BeautyConfig) SetDefault() {
@@ -38,6 +43,10 @@ func (bc *BeautyConfig) SetDefault() {
 
 	if bc.AuthCoreSrv == "" {
 		bc.AuthCoreSrv = "auth-core"
+	}
+
+	if bc.ShareSecretKey == "" {
+		bc.ShareSecretKey = putils.RandString(7)
 	}
 }
 
