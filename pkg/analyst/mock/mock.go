@@ -53,6 +53,10 @@ func (m *MockAnalyst) generateScoreDetails() []analyst.Detail {
 	return details
 }
 
+func (m *MockAnalyst) Name() string {
+	return "MockAnalyst"
+}
+
 func (m *MockAnalyst) DoAnalysis(_ context.Context, _, _ string, _ []byte) (*analyst.Result, error) {
 	rander.Shuffle(len(allTags), func(i, j int) {
 		allTags[i], allTags[j] = allTags[j], allTags[i]

@@ -128,6 +128,10 @@ func (a *AiAnalyst) parseAiResp(choices []*botpb.Choice) (*analyst.Result, error
 	return ret, nil
 }
 
+func (a *AiAnalyst) Name() string {
+	return "AiAnalyst"
+}
+
 func (a *AiAnalyst) DoAnalysis(ctx context.Context, imageName, imageUrl string, image []byte) (*analyst.Result, error) {
 	imageUrl = a.generateImageUrl(imageName, image)
 

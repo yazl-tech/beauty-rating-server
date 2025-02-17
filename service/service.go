@@ -13,7 +13,9 @@ import (
 	"github.com/yazl-tech/beauty-rating-server/config"
 	"github.com/yazl-tech/beauty-rating-server/domain/analysis"
 	"github.com/yazl-tech/beauty-rating-server/domain/user"
+	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst/ai"
+	"github.com/yazl-tech/beauty-rating-server/pkg/analyst/mock"
 	"github.com/yazl-tech/beauty-rating-server/pkg/oss"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
@@ -34,15 +36,19 @@ func NewBeautyRatingService(
 	beautyConf *config.BeautyConfig,
 	wechatConfig *user.WechatConfig,
 ) *BeautyRatingService {
-	// mockAnlyst := mock.NewMockAnalyst()
-
+	mockAnalyst := mock.NewMockAnalyst()
 	doubaoClient := doubaopb.NewDoubaoHandlerClient(aiBotConn)
-	aiAnlysy := ai.NewAiAnalyst(beautyConf.AiModel, doubaoClient)
+	aiAnalyst := ai.NewAiAnalyst(beautyConf.AiModel, doubaoClient)
+
+	analystSelector := analyst.NewAnalystSelector(
+		analyst.WithAnalysts(mockAnalyst, 80),
+		analyst.WithAnalysts(aiAnalyst, 20),
+	)
 
 	analysisRepo := analysisRepo.NewAnalysisRepo(db)
 	analysisSrv := analysis.NewAnalysisService(
 		beautyConf,
-		aiAnlysy,
+		analystSelector,
 		analysisRepo,
 		oss,
 	)
