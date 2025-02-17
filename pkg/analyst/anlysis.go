@@ -69,11 +69,9 @@ func NewAnalystSelector(opts ...SelectorOption) *AnalystSelector {
 }
 
 func (s *AnalystSelector) GetAnalyst() Analyst {
+	defer s.dice.Reset()
 	idx := s.dice.Next()
-	if idx < 0 || idx >= len(s.analysts) {
-		s.dice.Reset()
-		idx = s.dice.Next()
-	}
+
 	return s.analysts[idx]
 }
 
