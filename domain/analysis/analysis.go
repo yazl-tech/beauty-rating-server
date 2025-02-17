@@ -26,6 +26,7 @@ type AnalysisDetail struct {
 	Tags         []string      `json:"tags,omitempty"`
 	ScoreDetails []ScoreDetail `json:"scoreDetails,omitempty"`
 	IsFavorite   bool          `json:"isFavorite,omitempty"`
+	AnalyisType  int           `json:"analyisType"`
 }
 
 type ScoreDetail struct {

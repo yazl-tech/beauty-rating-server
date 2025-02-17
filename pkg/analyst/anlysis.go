@@ -15,7 +15,15 @@ import (
 	"github.com/yazl-tech/beauty-rating-server/pkg/dice"
 )
 
+type AnalystType int
+
+const (
+	TypeMock AnalystType = iota
+	TypeAi
+)
+
 type Result struct {
+	AnalystType AnalystType
 	Score       int
 	Description string
 	Tags        []string
@@ -77,5 +85,10 @@ func (s *AnalystSelector) DoAnalysis(ctx context.Context, imageName, imageUrl st
 	analyst := s.GetAnalyst()
 
 	plog.Debugc(ctx, "GetAnalyst: %v", analyst.Name())
-	return analyst.DoAnalysis(ctx, imageName, imageUrl, image)
+	resp, err := analyst.DoAnalysis(ctx, imageName, imageUrl, image)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }

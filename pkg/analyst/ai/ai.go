@@ -140,5 +140,11 @@ func (a *AiAnalyst) DoAnalysis(ctx context.Context, imageName, imageUrl string, 
 		return nil, err
 	}
 
-	return a.parseAiResp(resp.GetChoices())
+	ret, err := a.parseAiResp(resp.GetChoices())
+	if err != nil {
+		return nil, err
+	}
+
+	ret.AnalystType = analyst.TypeAi
+	return ret, nil
 }

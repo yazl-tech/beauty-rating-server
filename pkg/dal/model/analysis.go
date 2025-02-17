@@ -28,6 +28,7 @@ type Analysis struct {
 	Tags         datatypes.JSON
 	ScoreDetails datatypes.JSON
 	IsFavorite   bool
+	AnalyisType  int
 
 	CreatedAt time.Time      `gorm:"comment:创建时间"`
 	UpdatedAt time.Time      `gorm:"comment:更新时间"`
@@ -51,6 +52,7 @@ func (a *Analysis) FromEntity(entity *analysis.AnalysisDetail) (err error) {
 	a.Tags, err = a.convertDBJson(entity.Tags)
 	a.ScoreDetails, err = a.convertDBJson(entity.ScoreDetails)
 	a.IsFavorite = entity.IsFavorite
+	a.AnalyisType = entity.AnalyisType
 	a.CreatedAt = entity.Date
 
 	return nil
@@ -82,6 +84,7 @@ func (a *Analysis) ToEntity() (ad *analysis.AnalysisDetail, err error) {
 		Date:         a.CreatedAt,
 		Tags:         make([]string, 0),
 		ScoreDetails: make([]analysis.ScoreDetail, 0),
+		AnalyisType:  a.AnalyisType,
 	}
 
 	err = a.parseDBJson(a.Tags, &ad.Tags)

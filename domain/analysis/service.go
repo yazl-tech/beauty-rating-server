@@ -215,6 +215,7 @@ func (as *DefaultAnalysisService) DoAnalysis(ctx context.Context, userId int, im
 		Tags:         d.Tags,
 		Date:         time.Now(),
 		ScoreDetails: parseAnalystDetails(d.Details),
+		AnalyisType:  int(d.AnalystType),
 	}
 
 	err = as.repo.CreateAnalysisDetail(ctx, detail)

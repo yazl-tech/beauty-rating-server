@@ -63,6 +63,7 @@ func (m *MockAnalyst) DoAnalysis(_ context.Context, _, _ string, _ []byte) (*ana
 	})
 
 	return &analyst.Result{
+		AnalystType: analyst.TypeMock,
 		Score:       randomNumber(85, 99),
 		Description: descriptions[rander.Intn(len(descriptions))],
 		Tags:        allTags[:randomNumber(3, 6)],
