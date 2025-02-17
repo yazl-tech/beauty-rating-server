@@ -14,7 +14,7 @@ type Result struct {
 	Score       int
 	Description string
 	Tags        []string
-	Details     []Detail
+	Details     []Detail `json:"scoreDetails"`
 }
 
 type Detail struct {
@@ -24,5 +24,5 @@ type Detail struct {
 }
 
 type Analyst interface {
-	DoAnalysis(ctx context.Context, image []byte) (*Result, error)
+	DoAnalysis(ctx context.Context, imageName, imageUrl string, image []byte) (*Result, error)
 }

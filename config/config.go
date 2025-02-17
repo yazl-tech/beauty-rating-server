@@ -22,6 +22,8 @@ type BeautyConfig struct {
 	AuthCoreSrv    string
 	TokenKey       string
 	ShareSecretKey string
+	AiModel        string
+	AiBotSrv       string
 }
 
 func (bc *BeautyConfig) SetDefault() {
@@ -45,6 +47,10 @@ func (bc *BeautyConfig) SetDefault() {
 		bc.AuthCoreSrv = "auth-core"
 	}
 
+	if bc.AiBotSrv == "" {
+		bc.AiBotSrv = "ai-bot"
+	}
+
 	if bc.ShareSecretKey == "" {
 		bc.ShareSecretKey = putils.RandString(7)
 	}
@@ -53,6 +59,10 @@ func (bc *BeautyConfig) SetDefault() {
 func (bc *BeautyConfig) Validate() error {
 	if bc.TokenKey == "" {
 		return errors.New("missing tokenKey")
+	}
+
+	if bc.AiModel == "" {
+		return errors.New("missing aiModel")
 	}
 
 	return nil

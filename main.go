@@ -49,13 +49,16 @@ func main() {
 	authCoreConn, err := grpc.DialGrpc(beautyConf.AuthCoreSrv)
 	plog.PanicError(err)
 
+	aiBotConn, err := grpc.DialGrpc(beautyConf.AiBotSrv)
+	plog.PanicError(err)
+
 	minioClient := minio.NewMinioOss(minioConf)
 
 	plog.PanicError(pgorm.RegisterSqlModelWithConf(mysqlConf, model.AllTables()...))
 	plog.PanicError(pgorm.AutoMigrate(mysqlConf))
 	db := pgorm.GetDbByConf(mysqlConf)
 
-	beautyService := service.NewBeautyRatingService(db, minioClient, authCoreConn, beautyConf, wechatConf)
+	beautyService := service.NewBeautyRatingService(db, minioClient, authCoreConn, aiBotConn, beautyConf, wechatConf)
 	router := api.SetupRouter(beautyConf, wechatConf, authCoreConn, beautyService)
 
 	coreSrv := cores.NewPuzzleCore(

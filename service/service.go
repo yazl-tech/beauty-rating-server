@@ -9,10 +9,11 @@
 package service
 
 import (
+	doubaopb "github.com/yazl-tech/ai-bot/pkg/proto/doubao"
 	"github.com/yazl-tech/beauty-rating-server/config"
 	"github.com/yazl-tech/beauty-rating-server/domain/analysis"
 	"github.com/yazl-tech/beauty-rating-server/domain/user"
-	"github.com/yazl-tech/beauty-rating-server/pkg/analyst/mock"
+	"github.com/yazl-tech/beauty-rating-server/pkg/analyst/ai"
 	"github.com/yazl-tech/beauty-rating-server/pkg/oss"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
@@ -29,15 +30,19 @@ func NewBeautyRatingService(
 	db *gorm.DB,
 	oss oss.IOSS,
 	authCoreConn grpc.ClientConnInterface,
+	aiBotConn grpc.ClientConnInterface,
 	beautyConf *config.BeautyConfig,
 	wechatConfig *user.WechatConfig,
 ) *BeautyRatingService {
-	mockAnlyst := mock.NewMockAnalyst()
+	// mockAnlyst := mock.NewMockAnalyst()
+
+	doubaoClient := doubaopb.NewDoubaoHandlerClient(aiBotConn)
+	aiAnlysy := ai.NewAiAnalyst(beautyConf.AiModel, doubaoClient)
 
 	analysisRepo := analysisRepo.NewAnalysisRepo(db)
 	analysisSrv := analysis.NewAnalysisService(
 		beautyConf,
-		mockAnlyst,
+		aiAnlysy,
 		analysisRepo,
 		oss,
 	)

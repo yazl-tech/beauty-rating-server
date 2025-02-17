@@ -201,7 +201,7 @@ func (as *DefaultAnalysisService) GetAnalysisImage(ctx context.Context, imageId 
 }
 
 func (as *DefaultAnalysisService) DoAnalysis(ctx context.Context, userId int, imageId string, b []byte) (*AnalysisDetail, error) {
-	d, err := as.analyst.DoAnalysis(ctx, b)
+	d, err := as.analyst.DoAnalysis(ctx, imageId, imageId, b)
 	if err != nil {
 		return nil, err
 	}
