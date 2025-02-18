@@ -10,19 +10,10 @@ package mock
 
 import (
 	"context"
-	"math/rand"
-	"time"
 
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
+	"github.com/yazl-tech/beauty-rating-server/pkg/random"
 )
-
-var (
-	rander *rand.Rand
-)
-
-func init() {
-	rander = rand.New(rand.NewSource(time.Now().UnixNano()))
-}
 
 var _ analyst.Analyst = (*MockAnalyst)(nil)
 
@@ -33,21 +24,13 @@ func NewMockAnalyst() *MockAnalyst {
 	return &MockAnalyst{}
 }
 
-func randomNumber(min, max int) int {
-	return rander.Intn(max-min+1) + min
-}
-
-func randomPick(arr []string) string {
-	return arr[rander.Intn(len(arr))]
-}
-
 func (m *MockAnalyst) generateScoreDetails() []analyst.Detail {
 	var details []analyst.Detail
 	for _, item := range scoreLabels {
 		details = append(details, analyst.Detail{
 			Label: item.Label,
-			Score: randomNumber(85, 98),
-			Desc:  item.Descs[rander.Intn(len(item.Descs))],
+			Score: random.RandomNumber(85, 98),
+			Desc:  item.Descs[random.RandomInt(len(item.Descs))],
 		})
 	}
 	return details
@@ -57,16 +40,20 @@ func (m *MockAnalyst) Name() string {
 	return "MockAnalyst"
 }
 
+func (m *MockAnalyst) Typ() analyst.AnalystType {
+	return analyst.TypeMock
+}
+
 func (m *MockAnalyst) DoAnalysis(_ context.Context, _, _ string, _ []byte) (*analyst.Result, error) {
-	rander.Shuffle(len(allTags), func(i, j int) {
+	random.RandomShuffle(len(allTags), func(i, j int) {
 		allTags[i], allTags[j] = allTags[j], allTags[i]
 	})
 
 	return &analyst.Result{
 		AnalystType: analyst.TypeMock,
-		Score:       randomNumber(85, 99),
-		Description: descriptions[rander.Intn(len(descriptions))],
-		Tags:        allTags[:randomNumber(3, 6)],
+		Score:       random.RandomNumber(85, 99),
+		Description: descriptions[random.RandomInt(len(descriptions))],
+		Tags:        allTags[:random.RandomNumber(3, 6)],
 		Details:     m.generateScoreDetails(),
 	}, nil
 }

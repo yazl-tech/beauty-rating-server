@@ -20,6 +20,7 @@ type AnalystType int
 const (
 	TypeMock AnalystType = iota
 	TypeAi
+	TypeSelector
 )
 
 type Result struct {
@@ -38,6 +39,7 @@ type Detail struct {
 
 type Analyst interface {
 	Name() string
+	Typ() AnalystType
 	DoAnalysis(ctx context.Context, imageName, imageUrl string, image []byte) (*Result, error)
 }
 
@@ -77,6 +79,10 @@ func (s *AnalystSelector) GetAnalyst() Analyst {
 
 func (s *AnalystSelector) Name() string {
 	return "AnalystSelector"
+}
+
+func (s *AnalystSelector) Typ() AnalystType {
+	return TypeSelector
 }
 
 func (s *AnalystSelector) DoAnalysis(ctx context.Context, imageName, imageUrl string, image []byte) (*Result, error) {

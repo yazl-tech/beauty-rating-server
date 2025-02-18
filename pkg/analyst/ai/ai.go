@@ -19,6 +19,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
+	"github.com/yazl-tech/beauty-rating-server/pkg/random"
 
 	botpb "github.com/yazl-tech/ai-bot/pkg/proto/bot"
 	doubaopb "github.com/yazl-tech/ai-bot/pkg/proto/doubao"
@@ -128,8 +129,30 @@ func (a *AiAnalyst) parseAiResp(choices []*botpb.Choice) (*analyst.Result, error
 	return ret, nil
 }
 
+func (a *AiAnalyst) choiceTags(tags []string) []string {
+	tl := len(tags)
+
+	if tl < 4 {
+		return tags
+	}
+
+	if tl >= 4 && tl <= 6 {
+		return tags
+	}
+
+	random.RandomShuffle(len(tags), func(i, j int) {
+		tags[i], tags[j] = tags[j], tags[i]
+	})
+
+	return tags[:random.RandomNumber(3, 6)]
+}
+
 func (a *AiAnalyst) Name() string {
 	return "AiAnalyst"
+}
+
+func (a *AiAnalyst) Typ() analyst.AnalystType {
+	return analyst.TypeAi
 }
 
 func (a *AiAnalyst) DoAnalysis(ctx context.Context, imageName, imageUrl string, image []byte) (*analyst.Result, error) {

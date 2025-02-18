@@ -12,6 +12,7 @@ import (
 	"errors"
 
 	"github.com/go-puzzles/puzzles/putils"
+	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
 )
 
 type BeautyConfig struct {
@@ -24,6 +25,11 @@ type BeautyConfig struct {
 	ShareSecretKey string
 	AiModel        string
 	AiBotSrv       string
+	AnalystWeights map[analyst.AnalystType]int
+}
+
+func (bc *BeautyConfig) AnalystWeight(at analyst.AnalystType) int {
+	return bc.AnalystWeights[at]
 }
 
 func (bc *BeautyConfig) SetDefault() {
@@ -53,6 +59,13 @@ func (bc *BeautyConfig) SetDefault() {
 
 	if bc.ShareSecretKey == "" {
 		bc.ShareSecretKey = putils.RandString(7)
+	}
+
+	if bc.AnalystWeights == nil {
+		bc.AnalystWeights = map[analyst.AnalystType]int{
+			analyst.TypeMock: 80,
+			analyst.TypeAi:   20,
+		}
 	}
 }
 

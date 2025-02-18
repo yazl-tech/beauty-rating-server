@@ -41,8 +41,8 @@ func NewBeautyRatingService(
 	aiAnalyst := ai.NewAiAnalyst(beautyConf.AiModel, doubaoClient)
 
 	analystSelector := analyst.NewAnalystSelector(
-		analyst.WithAnalysts(mockAnalyst, 80),
-		analyst.WithAnalysts(aiAnalyst, 20),
+		analyst.WithAnalysts(mockAnalyst, beautyConf.AnalystWeight(mockAnalyst.Typ())),
+		analyst.WithAnalysts(aiAnalyst, beautyConf.AnalystWeight(aiAnalyst.Typ())),
 	)
 
 	analysisRepo := analysisRepo.NewAnalysisRepo(db)
