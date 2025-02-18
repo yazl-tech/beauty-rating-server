@@ -10,6 +10,7 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"github.com/yazl-tech/beauty-rating-server/pkg/analyst"
 	"github.com/yazl-tech/beauty-rating-server/pkg/random"
@@ -45,6 +46,8 @@ func (m *MockAnalyst) Typ() analyst.AnalystType {
 }
 
 func (m *MockAnalyst) DoAnalysis(_ context.Context, _, _ string, _ []byte) (*analyst.Result, error) {
+	time.Sleep(time.Duration(random.RandomNumber(4, 9)))
+
 	random.RandomShuffle(len(allTags), func(i, j int) {
 		allTags[i], allTags[j] = allTags[j], allTags[i]
 	})
