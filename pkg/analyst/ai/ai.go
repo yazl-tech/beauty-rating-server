@@ -129,7 +129,7 @@ func (a *AiAnalyst) choiceTags(tags []string) []string {
 		tags[i], tags[j] = tags[j], tags[i]
 	})
 
-	return tags[:random.RandomNumber(3, 6)]
+	return tags[:random.RandomNumber(4, 6)]
 }
 
 func (a *AiAnalyst) parseAiResp(choices []*botpb.Choice) (*analyst.Result, error) {
