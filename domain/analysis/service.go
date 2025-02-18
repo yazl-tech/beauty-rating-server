@@ -146,6 +146,7 @@ func (as *DefaultAnalysisService) convertImage(ctx context.Context, detail *Anal
 	}
 
 	presignedUrl.Host = as.beautyConf.ApiHost
+	presignedUrl.Scheme = "https"
 	// /api/v1/analysis/image/:imageId
 	presignedUrl.Path = fmt.Sprintf("%s%s/analysis/image/%s", as.beautyConf.ApiPrefix, as.beautyConf.ApiVersion, detail.ImageUrl)
 

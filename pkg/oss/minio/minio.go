@@ -17,7 +17,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -79,22 +78,6 @@ func (m *MinioOss) getMinioSourceHandler(ctx *gin.Context, req *GetMinioSourceRe
 		ctx.Status(http.StatusBadRequest)
 		return
 	}
-}
-
-func (m *MinioOss) checkUrl(u string) (string, error) {
-	if !strings.HasPrefix(u, "http://") && !strings.HasPrefix(u, "https://") {
-		u = "https://" + u
-	}
-	url, err := url.Parse(u)
-	if err != nil {
-		return "", errors.Wrap(err, "parseMinioURL")
-	}
-
-	if url.Scheme == "" {
-		url.Scheme = "https"
-	}
-
-	return url.String(), nil
 }
 
 func (m *MinioOss) getFileExt(file string) string {
