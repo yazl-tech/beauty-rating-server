@@ -16,6 +16,7 @@ import (
 )
 
 type BeautyConfig struct {
+	ApiTls         bool
 	ApiHost        string
 	ApiPrefix      string
 	ApiVersion     string
