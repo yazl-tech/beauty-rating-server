@@ -58,6 +58,14 @@ func NewAiAnalyst(model string, doubaoClient doubaopb.DoubaoHandlerClient) *AiAn
 	return &AiAnalyst{model: model, doubaoClient: doubaoClient}
 }
 
+func (a *AiAnalyst) Name() string {
+	return "AiAnalyst"
+}
+
+func (a *AiAnalyst) Typ() analyst.AnalystType {
+	return analyst.TypeAi
+}
+
 func (a *AiAnalyst) calcBase64(b []byte) string {
 	encoder := base64.StdEncoding
 	buf := make([]byte, encoder.EncodedLen(len(b)))
@@ -106,6 +114,24 @@ func (a *AiAnalyst) packRequest(imageUrl string) *botpb.ChatRequest {
 	}
 }
 
+func (a *AiAnalyst) choiceTags(tags []string) []string {
+	tl := len(tags)
+
+	if tl < 4 {
+		return tags
+	}
+
+	if tl >= 4 && tl <= 6 {
+		return tags
+	}
+
+	random.RandomShuffle(len(tags), func(i, j int) {
+		tags[i], tags[j] = tags[j], tags[i]
+	})
+
+	return tags[:random.RandomNumber(3, 6)]
+}
+
 func (a *AiAnalyst) parseAiResp(choices []*botpb.Choice) (*analyst.Result, error) {
 	if len(choices) == 0 {
 		return nil, fmt.Errorf("empty choices")
@@ -125,34 +151,9 @@ func (a *AiAnalyst) parseAiResp(choices []*botpb.Choice) (*analyst.Result, error
 	if err != nil {
 		return nil, errors.Wrap(err, "unmarshalChoice")
 	}
+	ret.Tags = a.choiceTags(ret.Tags)
 
 	return ret, nil
-}
-
-func (a *AiAnalyst) choiceTags(tags []string) []string {
-	tl := len(tags)
-
-	if tl < 4 {
-		return tags
-	}
-
-	if tl >= 4 && tl <= 6 {
-		return tags
-	}
-
-	random.RandomShuffle(len(tags), func(i, j int) {
-		tags[i], tags[j] = tags[j], tags[i]
-	})
-
-	return tags[:random.RandomNumber(3, 6)]
-}
-
-func (a *AiAnalyst) Name() string {
-	return "AiAnalyst"
-}
-
-func (a *AiAnalyst) Typ() analyst.AnalystType {
-	return analyst.TypeAi
 }
 
 func (a *AiAnalyst) DoAnalysis(ctx context.Context, imageName, imageUrl string, image []byte) (*analyst.Result, error) {

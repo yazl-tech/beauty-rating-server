@@ -19,8 +19,7 @@ type DoAnalysisRequest struct {
 }
 
 type DoAnalysisResponse struct {
-	ImageId string                   `json:"image_id"`
-	Detail  *analysis.AnalysisDetail `json:"detail"`
+	Detail *analysis.AnalysisDetail `json:"detail"`
 }
 
 type DoFavoriteRequest struct {
