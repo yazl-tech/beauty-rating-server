@@ -19,8 +19,8 @@ import (
 	"github.com/yazl-tech/beauty-rating-server/service/dto"
 )
 
-func (bs *BeautyRatingService) WechatLogin(ctx context.Context, code, deviceId string) (*dto.WechatLoginResponse, error) {
-	token, err := bs.userSrv.WxLogin(ctx, deviceId, code)
+func (bs *BeautyRatingService) WechatLogin(ctx context.Context, code, deviceId, appName string) (*dto.WechatLoginResponse, error) {
+	token, err := bs.userSrv.WxLogin(ctx, deviceId, code, appName)
 	if err != nil {
 		plog.Errorc(ctx, "wechat login failed: %v", err)
 		return nil, exception.ParseError(err, exception.ErrWechatLogin)

@@ -21,7 +21,7 @@ import (
 )
 
 type UserHandlerApp interface {
-	WechatLogin(ctx context.Context, code, deviceId string) (*dto.WechatLoginResponse, error)
+	WechatLogin(ctx context.Context, code, deviceId, appName string) (*dto.WechatLoginResponse, error)
 	GetUserProfile(ctx context.Context) (*user.User, error)
 	UpdateUserName(ctx context.Context, username string) error
 	UpdateUserGender(ctx context.Context, gender int) error
@@ -55,7 +55,7 @@ func (u *UserHandler) Init(router gin.IRouter) {
 }
 
 func (u *UserHandler) wechatLoginHandler(ctx *gin.Context, req *dto.WechatLoginRequest) (*dto.WechatLoginResponse, error) {
-	return u.userApp.WechatLogin(ctx.Request.Context(), req.Code, req.DeviceId)
+	return u.userApp.WechatLogin(ctx.Request.Context(), req.Code, req.DeviceId, req.AppName)
 }
 
 func (u *UserHandler) getUserInfoHandler(ctx *gin.Context) (*dto.User, error) {

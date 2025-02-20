@@ -8,9 +8,26 @@
 
 package user
 
-type WechatConfig struct {
+type WechatApp struct {
 	AppId    string
 	SecretId string
+}
+
+type WechatConfig struct {
+	AppMap   map[string]*WechatApp
+	AppId    string
+	SecretId string
+}
+
+func (wc *WechatConfig) GetWechatAppConfig(appName string) *WechatApp {
+	if app, ok := wc.AppMap[appName]; ok {
+		return app
+	}
+
+	return &WechatApp{
+		AppId:    wc.AppId,
+		SecretId: wc.SecretId,
+	}
 }
 
 type BaseInfo struct {

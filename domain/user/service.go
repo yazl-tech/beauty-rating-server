@@ -26,7 +26,7 @@ import (
 )
 
 type Service interface {
-	WxLogin(ctx context.Context, deviceId, code string) (*Token, error)
+	WxLogin(ctx context.Context, deviceId, code, appName string) (*Token, error)
 	GetUserInfo(ctx context.Context) (*User, error)
 	UpdateUsername(ctx context.Context, username string) error
 	UpdateGender(ctx context.Context, gender int) error
@@ -53,10 +53,12 @@ func NewUserService(wxConf *WechatConfig, authCoreConn grpc.ClientConnInterface)
 	}
 }
 
-func (us *DefaultUserService) WxLogin(ctx context.Context, deviceId, code string) (*Token, error) {
+func (us *DefaultUserService) WxLogin(ctx context.Context, deviceId, code, appName string) (*Token, error) {
+	app := us.wxConfig.GetWechatAppConfig(appName)
+
 	resp, err := us.authClient.WechatLogin(ctx, &dto.WechatLoginRequest{
-		AppId:    us.wxConfig.AppId,
-		SecretId: us.wxConfig.SecretId,
+		AppId:    app.AppId,
+		SecretId: app.SecretId,
 		DeviceId: deviceId,
 		Code:     code,
 	})
