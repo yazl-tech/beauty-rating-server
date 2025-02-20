@@ -54,6 +54,7 @@ func NewUserService(wxConf *WechatConfig, authCoreConn grpc.ClientConnInterface)
 }
 
 func (us *DefaultUserService) WxLogin(ctx context.Context, deviceId, code, appName string) (*Token, error) {
+	plog.Infoc(ctx, "appName: %v", appName)
 	app := us.wxConfig.GetWechatAppConfig(appName)
 
 	resp, err := us.authClient.WechatLogin(ctx, &dto.WechatLoginRequest{

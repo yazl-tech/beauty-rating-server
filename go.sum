@@ -13,8 +13,8 @@ cloud.google.com/go/longrunning v0.6.4 h1:3tyw9rO3E2XVXzSApn1gyEEnH2K9SynNQjMlBi
 cloud.google.com/go/longrunning v0.6.4/go.mod h1:ttZpLCe6e7EXvn9OxpBRx7kZEB0efv8yBO6YnVMfhJs=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
-gitea.hoven.com/core/auth-core v1.0.16 h1:7mVb4+t1Q4cOSHeBuQtkWkFCCEPJJKyUiM4mbVMuZek=
-gitea.hoven.com/core/auth-core v1.0.16/go.mod h1:ROcH2tlYUGIK/gH1gQPml2rol4b9J268QqqlW1SVJpY=
+gitea.hoven.com/core/auth-core v1.0.17 h1:LzltAYKCcFX5HZ45n7N6edqvvLhl+DGF6Hb5hqIcSsg=
+gitea.hoven.com/core/auth-core v1.0.17/go.mod h1:ROcH2tlYUGIK/gH1gQPml2rol4b9J268QqqlW1SVJpY=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/Masterminds/semver/v3 v3.3.1 h1:QtNSWtVZ3nBfk8mAOu/B6v7FMJ+NHTIgUPi7rj+4nv4=
 github.com/Masterminds/semver/v3 v3.3.1/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=

@@ -8,23 +8,20 @@
 
 package user
 
-type WechatApp struct {
-	AppId    string
-	SecretId string
-}
+import sdkHttpHandler "gitea.hoven.com/core/auth-core/pkg/sdk/handler"
 
 type WechatConfig struct {
-	AppMap   map[string]*WechatApp
+	AppMap   map[string]*sdkHttpHandler.WechatAppSecret
 	AppId    string
 	SecretId string
 }
 
-func (wc *WechatConfig) GetWechatAppConfig(appName string) *WechatApp {
+func (wc *WechatConfig) GetWechatAppConfig(appName string) *sdkHttpHandler.WechatAppSecret {
 	if app, ok := wc.AppMap[appName]; ok {
 		return app
 	}
 
-	return &WechatApp{
+	return &sdkHttpHandler.WechatAppSecret{
 		AppId:    wc.AppId,
 		SecretId: wc.SecretId,
 	}

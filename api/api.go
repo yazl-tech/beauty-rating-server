@@ -39,7 +39,9 @@ func SetupRouter(
 		authCoreMiddleware,
 		sdkHttpHandler.WithAuthBaseRoutes(),
 		sdkHttpHandler.WithAccountRoutes(),
-		sdkHttpHandler.WithWechatRoutes(wechatConf.AppId, wechatConf.SecretId),
+		sdkHttpHandler.WithWechatRoutes(func(appName string) *sdkHttpHandler.WechatAppSecret {
+			return wechatConf.GetWechatAppConfig(appName)
+		}),
 		sdkHttpHandler.WithUserRoutes(),
 	)
 
