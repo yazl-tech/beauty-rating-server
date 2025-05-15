@@ -5,7 +5,7 @@ WORKDIR /app
 COPY ./ /app
 
 ENV GO111MODULE=auto
-ENV GOINSECURE="github.com/go-puzzles"
+ENV GOPRIVATE="github.com/go-puzzles"
 ENV GOPROXY="https://goproxy.cn,direct"
 
 RUN cd /app && \
