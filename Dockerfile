@@ -1,5 +1,5 @@
 # builder
-FROM golang:1.24.0-alpine AS builder
+FROM registry.hoven.top/library/golang:1.24.3-alpine AS builder
 
 WORKDIR /app
 COPY ./ /app
