@@ -13,9 +13,9 @@ import (
 	"io"
 	"mime/multipart"
 
-	"gitea.hoven.com/core/auth-core/pkg/dto"
-	"gitea.hoven.com/core/auth-core/proto/authenticationpb"
-	"gitea.hoven.com/core/auth-core/proto/userpb"
+	"github.com/go-puzzles/auth-core/pkg/dto"
+	"github.com/go-puzzles/auth-core/proto/authenticationpb"
+	"github.com/go-puzzles/auth-core/proto/userpb"
 	"github.com/go-puzzles/puzzles/plog"
 	"github.com/pkg/errors"
 	"github.com/yazl-tech/beauty-rating-server/pkg/exception"

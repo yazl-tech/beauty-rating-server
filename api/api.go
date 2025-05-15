@@ -11,7 +11,7 @@ package api
 import (
 	"net/http"
 
-	"gitea.hoven.com/core/auth-core/pkg/sdk/middleware"
+	"github.com/go-puzzles/auth-core/pkg/sdk/middleware"
 	"github.com/go-puzzles/puzzles/pgin"
 	"github.com/yazl-tech/beauty-rating-server/api/handler"
 	"github.com/yazl-tech/beauty-rating-server/config"
@@ -19,7 +19,7 @@ import (
 	"github.com/yazl-tech/beauty-rating-server/service"
 	"google.golang.org/grpc"
 
-	sdkHttpHandler "gitea.hoven.com/core/auth-core/pkg/sdk/handler"
+	sdkHttpHandler "github.com/go-puzzles/auth-core/pkg/sdk/handler"
 )
 
 type BeautyRatingApi struct {

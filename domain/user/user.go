@@ -8,7 +8,7 @@
 
 package user
 
-import sdkHttpHandler "gitea.hoven.com/core/auth-core/pkg/sdk/handler"
+import sdkHttpHandler "github.com/go-puzzles/auth-core/pkg/sdk/handler"
 
 type WechatConfig struct {
 	AppMap   map[string]*sdkHttpHandler.WechatAppSecret
