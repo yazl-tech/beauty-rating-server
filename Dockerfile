@@ -8,7 +8,6 @@ ENV GO111MODULE=auto
 ENV GOINSECURE="github.com/go-puzzles"
 ENV GOPROXY="https://goproxy.cn,direct"
 
-RUN apk add --no-cache git
 RUN cd /app && \
 	go mod tidy && \
 	go build -o ./server && \
