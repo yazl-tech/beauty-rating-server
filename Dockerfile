@@ -6,7 +6,7 @@ COPY ./ /app
 
 ENV GO111MODULE=auto
 ENV GOINSECURE="gitea.hoven.com"
-ENV GOPROXY="http://10.15.25.3:8081"
+ENV GOPROXY="https://goproxy.cn,direct"
 
 RUN apk add --no-cache git
 RUN cd /app && \
