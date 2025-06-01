@@ -97,8 +97,8 @@ github.com/go-playground/validator/v10 v10.25.0 h1:5Dh7cjvzR7BRZadnsVOzPhWsrwUr0
 github.com/go-playground/validator/v10 v10.25.0/go.mod h1:GGzBIJMuE98Ic/kJsBXbz1x/7cByt++cQ+YOuDM5wus=
 github.com/go-puzzles/auth-core v1.0.18 h1:I36tb85CxavaciL8orCZHB6l76UebVkyqNEB0SLnjSY=
 github.com/go-puzzles/auth-core v1.0.18/go.mod h1:53f0noeg+rm8/BkPNdEqJ0++NBprkr4Xg78HFMlEsvA=
-github.com/go-puzzles/puzzles v1.1.53 h1:yg0CNimWGsAIULvIouvtJQTi2BItGuuR9uSeJVTZ3qM=
-github.com/go-puzzles/puzzles v1.1.53/go.mod h1:Z/wBUOHWU6jYhj34rsGVkGrZBcEHb1ardV84t1XBma8=
+github.com/go-puzzles/puzzles v1.1.59 h1:FAkU9pB0SL0Elrxm5iLd0l44mZDWsWcOx0uRidEu1+o=
+github.com/go-puzzles/puzzles v1.1.59/go.mod h1:Z/wBUOHWU6jYhj34rsGVkGrZBcEHb1ardV84t1XBma8=
 github.com/go-sql-driver/mysql v1.7.0/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/go-sql-driver/mysql v1.9.2 h1:4cNKDYQ1I84SXslGddlsrMhc8k4LeDVj6Ad6WRjiHuU=

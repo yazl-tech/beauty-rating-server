@@ -7,7 +7,7 @@ toolchain go1.24.3
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-puzzles/auth-core v1.0.18
-	github.com/go-puzzles/puzzles v1.1.53
+	github.com/go-puzzles/puzzles v1.1.59
 	github.com/google/uuid v1.6.0
 	github.com/minio/minio-go/v7 v7.0.87
 	github.com/pkg/errors v0.9.1
